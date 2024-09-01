@@ -46,6 +46,11 @@ Scene constructScene(int height, int width, const Player* player, size_t numberO
         }
     }
 
+     if (!isPlayerPositionGood(&scene)) {
+        fprintf(stderr, "player position is not valid\n");
+        assert(false);
+    }
+
     return scene;
 }
 
@@ -122,4 +127,95 @@ void displayScene(Scene* scene, sf::RenderWindow* window) {
 
     displayObstacles(scene->numberOfObstacles, scene->obstacles, window);
     displayPlayer(&scene->player, window);
+}
+
+
+
+
+// --------------------------------     FINDING DISTANCES TO WALLS      ------------------------------
+
+struct Pair {
+    long double first;
+    long double second;
+};
+
+int compare(const void* one, const void* two) {
+    assert(one != NULL);
+    assert(two != NULL);
+
+    struct Pair* p1 = (Pair*)one;
+    struct Pair* p2 = (Pair*)two;
+
+    int si = sign(p1->first - p2->first);
+    if (si != 0)
+        return si;
+    return sign(p1->second - p2->second);
+}
+
+bool isFirstHit(long double currentDist, const Vector* direction, const Scene* scene) {
+    assert(scene != NULL);
+
+    Point origin = scene->player.position;
+    for (size_t i = 0; i < scene->numberOfObstacles; ++i) {
+        Obstacle obj = scene->obstacles[i];
+        for (size_t j = 0; j < obj.numberOfSides; ++j) {
+            Segment segm = getSegment(&obj, j);
+            long double dist = distanceToSegmByDirection(&origin, direction, &segm);
+            if (sign(dist - currentDist) < 0) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+const size_t PAIRS_ARRAY_SIZE = 100;
+Pair pairsArray[PAIRS_ARRAY_SIZE] = {};
+
+static void findDistancesToWalls(const Scene* scene, size_t* arrLen) {
+    assert(scene  != NULL);
+    assert(arrLen != NULL);
+
+    long double FOVhalf  = scene->player.FOV / 2;
+    long double minAngle = scene->player.currentDirection - FOVhalf;
+    long double maxAngle = scene->player.currentDirection + FOVhalf;
+
+    int cntOfPairs = 0;
+    Point origin = scene->player.position;
+    for (size_t i = 0; i < scene->numberOfObstacles; ++i) {
+        Obstacle obj = scene->obstacles[i];
+        for (size_t j = 0; j < obj.numberOfSides; ++j) {
+            Point point = obj.sides[j];
+            Segment segm = getSegment(&obj, j);
+            Vector direction = subVector(&point, &origin);
+            long double angle = getVectorAngle(&direction);
+
+            // this ray is not in our field of view
+            if (sign(minAngle - angle) > 0 ||
+                sign(angle - maxAngle) > 0)
+                    continue;
+
+            long double dist = getVectorLen(&direction);
+            if (!isFirstHit(dist, &direction, scene)) {
+                continue;
+            }
+
+            Pair pair = {angle, dist};
+            assert(cntOfPairs < PAIRS_ARRAY_SIZE);
+            pairsArray[cntOfPairs++] = pair;
+        }
+    }
+
+    qsort(pairsArray, cntOfPairs, sizeof(Pair), compare);
+}
+
+void displayScreen(const Scene* scene, sf::RenderWindow screen) {
+    assert(scene  != NULL);
+    assert(screen != NULL);
+
+    size_t arrLen = 0;
+    findDistancesToWalls(scene, &arrLen);
+
+
 }

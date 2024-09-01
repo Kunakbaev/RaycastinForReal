@@ -27,6 +27,9 @@ Vector subVector(const Vector* v1, const Vector* v2);
 long double scalarMult(const Point* one, const Point* two);
 long double crossMult(const Point* one, const Point* two);
 Vector vectorMultByConst(const Vector* vector, long double koef);
+long double getVectorLen(const Vector* vector);
+Vector normalizeVector(const Vector* vector);
+long double getVectorAngle(const Vector* vector);
 
 struct Segment {
     Point p1;
@@ -39,6 +42,9 @@ bool doesSegmentsIntersect(const Segment* segm1, const Segment* segm2);
 
 Vector rotateVectorByAngle(const Vector* vector, long double angle);
 bool doesRayIntersectSegm(const Point* origin, const Vector* vector, const Segment* segment);
-long double distanceToSegmByDirection(const Point* origin, const Vector* vector, const Segment* segment);
+long double distanceToSegmByDirection(const Point* origin, const Vector* direction, const Segment* segment);
+bool isInsideAngle(const Point* point, const Point* origin, const Point* p1, const Point* p2);
+bool isInsideTriangle(const Point* point, const Point* p1, const Point* p2, const Point* p3);
+
 
 #endif

@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "../include/geometryLib.hpp"
 
@@ -49,6 +51,30 @@ Vector vectorMultByConst(const Vector* vector, long double koef) {
     };
 
     return result;
+}
+
+long double getVectorLen(const Vector* vector) {
+    return sqrtl(sq(vector->x) + sq(vector->y));
+}
+
+Vector normalizeVector(const Vector* vector) {
+    assert(vector != NULL);
+
+    long double len = getVectorLen(vector);
+    if (sign(len) == 0) {
+        fprintf(stderr, "Error: couldn't normalize vector, it's length is 0");
+        assert(false);
+    }
+
+    Vector norm = constructPoint(
+        vector->x / len,
+        vector->y / len
+    );
+    return norm;
+}
+
+long double getVectorAngle(const Vector* vector) {
+    return atan2(vector->y, vector->x);
 }
 
 //void constructSegment(Point* point, long double x, long double y);
@@ -104,16 +130,31 @@ bool doesRayIntersectSegm(const Point* origin, const Vector* vector, const Segme
     return si <= 0;
 }
 
-long double distanceToSegmByDirection(const Point* origin, const Vector* vector, const Segment* segment) {
-    assert(origin  != NULL);
-    assert(vector  != NULL);
-    assert(segment != NULL);
+long double distanceToSegmByDirection(const Point* origin, const Vector* direction, const Segment* segment) {
+    assert(origin    != NULL);
+    assert(direction != NULL);
+    assert(segment   != NULL);
 
-    if (!doesRayIntersectSegm(origin, vector, segment))
+    if (!doesRayIntersectSegm(origin, direction, segment))
         return INF;
 
-    // FIXME: how to do this??? by binary search ?
-    return 0.0;
+    // FIXME: how to do this properly??? by binary search, not very optimal ?
+
+    Vector norm = normalizeVector(direction);
+    long double l = 0.0, r = INF;
+    while (sign(r - l) > 0) {
+        long double mid = (l + r) / 2;
+        Vector vector = vectorMultByConst(&norm, mid);
+        Point segmEnd = addVector(origin, &vector);
+        Segment raySegment = constructSegment(origin, &segmEnd);
+
+        if (doesSegmentsIntersect(segment, &raySegment))
+            r = mid;
+        else
+            l = mid;
+    }
+
+    return r;
 }
 
 static bool doesSegmentsIntersectHelper(const Segment* segm1, const Segment* segm2) {
@@ -137,4 +178,20 @@ bool doesSegmentsIntersect(const Segment* segm1, const Segment* segm2) {
     bool ok1 = doesSegmentsIntersectHelper(segm1, segm2);
     bool ok2 = doesSegmentsIntersectHelper(segm2, segm1);
     return ok1 && ok2;
+}
+
+bool isInsideAngle(const Point* point, const Point* origin, const Point* p1, const Point* p2) {
+    Vector direction = subVector(point, origin);
+    Vector origin2p1 = subVector(p1,    origin);
+    Vector origin2p2 = subVector(p2,    origin);
+
+    long double one = crossMult(&origin2p1, &direction);
+    long double two = crossMult(&origin2p2, &direction);
+    return sign(one) * sign(two) <= 0;
+}
+
+bool isInsideTriangle(const Point* point, const Point* p1, const Point* p2, const Point* p3) {
+    return isInsideAngle(point, p1, p2, p3) &&
+           isInsideAngle(point, p2, p1, p3) &&
+           isInsideAngle(point, p3, p1, p2);
 }
