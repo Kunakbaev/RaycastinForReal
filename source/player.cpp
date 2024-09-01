@@ -24,10 +24,20 @@ Player constructPlayer(const Point* position, long double startingDirection, lon
 
 void movePlayer(Player* player, Directions direction) {
     Vector deltaVector = getVectorByDirection(direction);
-    //printf("%Lg\n", player->stepSize);
-    //printf("%Lg %Lg\n", deltaVector.x, deltaVector.y);
     deltaVector = vectorMultByConst(&deltaVector, player->stepSize);
-    //printf("%Lg %Lg\n", deltaVector.x, deltaVector.y);
+    player->position = addVector(&player->position, &deltaVector);
+}
+
+void movePlayerForward(Player* player) {
+    Vector deltaVector = constructPoint(player->stepSize, 0);
+    deltaVector = rotateVectorByAngle(&deltaVector, player->currentDirection);
+    player->position = addVector(&player->position, &deltaVector);
+}
+
+void movePlayerBackward(Player* player) {
+    Vector deltaVector = constructPoint(player->stepSize, 0);
+    deltaVector = rotateVectorByAngle(&deltaVector, player->currentDirection);
+    deltaVector = vectorMultByConst(&deltaVector, -1);
     player->position = addVector(&player->position, &deltaVector);
 }
 
@@ -38,5 +48,4 @@ void turnPlayerByAngle(Player* player, RotationDirections direction) {
     if (direction == TURN_RIGHT)
         delta *= -1;
     player->currentDirection += delta;
-    printf("cur dir: %Lg\n", player->currentDirection);
 }

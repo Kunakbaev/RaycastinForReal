@@ -27,6 +27,8 @@ struct Player {
 Vector getVectorByDirection(enum Directions direction);
 Player constructPlayer(const Point* position, long double startingDirection, long double FOV,
         long double stepSize, long double angleRotationStep, int bodyRadius);
+void movePlayerForward(Player* player);
+void movePlayerBackward(Player* player);
 // void movePlayerByVector(Player* player, Vector* direction);
 void movePlayer(Player* player, Directions direction);
 void turnPlayerByAngle(Player* player, RotationDirections direction);

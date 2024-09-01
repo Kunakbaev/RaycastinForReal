@@ -30,6 +30,24 @@ Obstacle constructRectObstacle(int x1, int y1, int x2, int y2) {
     return constructObstacle(4, sides);
 }
 
+Obstacle constructCircleObstacle(const Point* center, int radius, size_t numberOfPoints) {
+    assert(center         != NULL);
+    assert(radius         > 0);
+    assert(numberOfPoints >= 3);
+
+    Point* sides = (Point*)calloc(numberOfPoints, sizeof(Point));
+    long double angleDelta = 2 * PIE / numberOfPoints;
+    Vector direction = constructPoint(radius, 0);
+
+    for (size_t i = 0; i < numberOfPoints; ++i) {
+        Point point = addVector(center, &direction);
+        sides[i] = point;
+        direction = rotateVectorByAngle(&direction, angleDelta);
+    }
+
+    return constructObstacle(numberOfPoints, sides);
+}
+
 Segment getSegment(const Obstacle* obj, size_t pointIndex) {
     size_t nxtIndex = (pointIndex + 1) % obj->numberOfSides;
     Segment result = constructSegment(

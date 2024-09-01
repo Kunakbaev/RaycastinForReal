@@ -6,26 +6,22 @@
 const int WIDTH = 800, HEIGHT = 800;
 
 int main() {
-
-//     Vector a = constructPoint(1, 0);
-//     a = rotateVectorByAngle(&a, PIE / 6);
-//     printf("%Lg %Lg\n", a.x, a.y);
-//
-//     return 0;
-
     // Point startingPosition = constructPoint(WIDTH / 2, HEIGHT / 2);
-    Point startingPosition = constructPoint(30, 30);
-    Player player = constructPlayer(&startingPosition, 0, PIE / 3, 0.2, 0.002, 0.1);
+    Point startingPosition = constructPoint(700, 550);
+    Player player = constructPlayer(&startingPosition, PIE * 0.7, PIE / 3, 0.04, 0.0002, 10);
 
+    Point circleCenter = constructPoint(600, 650);
     Obstacle obstacles[] = {
         constructRectObstacle(100, 100, 500, 300),
         constructRectObstacle(300, 350, 600, 550),
+        constructCircleObstacle(&circleCenter, 50, 10)
     };
-    Scene scene = constructScene(WIDTH, HEIGHT, &player, 2, obstacles);
+    Scene scene = constructScene(WIDTH, HEIGHT, &player, 3, obstacles);
 
     sf::RenderWindow sceneWindow(sf::VideoMode(WIDTH, HEIGHT), "Scene");
     sf::RenderWindow screenWindow(sf::VideoMode(WIDTH, HEIGHT), "Screen");
 
+    screenWindow.setMouseCursorVisible(false);
     while (sceneWindow.isOpen()) {
         sf::Event event;
         while (sceneWindow.pollEvent(event)) {
@@ -50,18 +46,22 @@ int main() {
 
 
         Point previousPlayerPosition = scene.player.position;
+        //bool isMovePlayer = false;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            movePlayer(&scene.player, DIRECTION_UP);
+            //movePlayer(&scene.player, DIRECTION_UP);
+            //isMovePlayer = true;
+            movePlayerForward(&scene.player);
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            movePlayer(&scene.player, DIRECTION_RIGHT);
-        }
+        // if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+        //     movePlayer(&scene.player, DIRECTION_RIGHT);
+        // }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            movePlayer(&scene.player, DIRECTION_DOWN);
+            movePlayerBackward(&scene.player);
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            movePlayer(&scene.player, DIRECTION_LEFT);
-        }
+        // if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+        //     movePlayer(&scene.player, DIRECTION_LEFT);
+        // }
+
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
             turnPlayerByAngle(&scene.player, TURN_RIGHT);
         }

@@ -131,8 +131,8 @@ void displayScene(Scene* scene, sf::RenderWindow* window) {
     assert(scene  != NULL);
     assert(window != NULL);
 
-    displayObstacles(scene->numberOfObstacles, scene->obstacles, window, scene->height);
     displayPlayer(&scene->player, window, scene->height);
+    displayObstacles(scene->numberOfObstacles, scene->obstacles, window, scene->height);
 }
 
 
@@ -259,12 +259,26 @@ static void findDistancesToWalls(const Scene* scene, size_t* arrLen) {
     qsort(pairsArray, numberOfPairs, sizeof(Pair), compare);
 }
 
+static int getColumnColorByDistance(long double dist) {
+    //assert(sign(dist) > 0);
+
+    long double koef = sign(dist) ? 1 / dist : 1;
+    koef *= 50;
+    if (sign(koef - 1) > 0)
+        koef = 1.0;
+
+    int color = 255 * koef;
+
+    // FIXME:
+    return color;
+}
+
 static int getColumnHeightByDistance(const Scene* scene, long double dist) {
     assert(scene      != NULL);
     //assert(sign(dist) > 0);
 
     long double koef = sign(dist) ? 1 / dist : 1;
-    koef *= 50;
+    koef *= 100;
     if (sign(koef - 1) > 0)
         koef = 1.0;
 
@@ -275,7 +289,8 @@ static int getColumnHeightByDistance(const Scene* scene, long double dist) {
     return height;
 }
 
-static void drawTrapezoid(int start, int end, int startHeight, int endHeight, int screenHeight, sf::RenderWindow* screen) {
+static void drawTrapezoid(int start, int end, int startHeight, int endHeight, int screenHeight,
+        sf::RenderWindow* screen, int colorStart, int colorEnd) {
     assert(screenHeight > 0);
     assert(screen       != NULL);
 
@@ -284,11 +299,13 @@ static void drawTrapezoid(int start, int end, int startHeight, int endHeight, in
     for (int i = 0; i < 4; ++i) {
         bool isLeft = i == 0 || i == 3;
         int height = (isLeft ? startHeight : endHeight) / 2;
+        int colorValue = isLeft ? colorStart : colorEnd;
+        sf::Color color(colorValue, colorValue, colorValue);
         if (i <= 1) height *= -1;
 
         sf::Vertex vert(sf::Vector2f(isLeft ? start : end,
                                      mid + height));
-        vert.color = sf::Color::White;
+        vert.color = color;
         arr.append(vert);
     }
 
@@ -320,8 +337,11 @@ void displayScreen(const Scene* scene, sf::RenderWindow* screen) {
         int end           = start + width;
         int startHeight   = getColumnHeightByDistance(scene, p1.second);
         int endHeight     = getColumnHeightByDistance(scene, p2.second);
+        int colorStart    = getColumnColorByDistance(p1.second);
+        int colorEnd      = getColumnColorByDistance(p2.second);
         //printf("%Lg %Lg\n", p1.first, p2.first);
 
-        drawTrapezoid(start, end, startHeight, endHeight, scene->height, screen);
+        drawTrapezoid(start, end, startHeight, endHeight, scene->height,
+            screen, colorStart, colorEnd);
     }
 }
