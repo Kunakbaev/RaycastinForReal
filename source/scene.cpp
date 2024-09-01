@@ -3,12 +3,28 @@
 
 #include "../include/scene.hpp"
 
+// --------------------------------------   CONSTRUCTING SCENE and checking if all objects are valid    --------------
+
+// obstacles should not intersect
+static bool validateObstacles(size_t numberOfObstacles, Obstacle* obstacles) {
+    for (size_t i = 0; i < numberOfObstacles; ++i)
+        for (size_t j = i + 1; j < numberOfObstacles; ++j)
+            if (doesObstaclesIntersect(&obstacles[i], &obstacles[j]))
+                return false;
+    return true;
+}
+
 Scene constructScene(int height, int width, const Player* player, size_t numberOfObstacles, Obstacle* obstacles) {
     assert(height > 0);
     assert(width > 0);
     assert(player != NULL);
     //assert(numberOfObstacles >= 0);
     //assert(obstacles != NULL);
+
+    if (!validateObstacles(numberOfObstacles, obstacles)) {
+        fprintf(stderr, "obstacles are not valid\n");
+        assert(false);
+    }
 
     Scene scene = {height, width, *player, numberOfObstacles, obstacles};
 
@@ -33,13 +49,33 @@ Scene constructScene(int height, int width, const Player* player, size_t numberO
     return scene;
 }
 
+bool isPlayerPositionGood(const Scene* scene) {
+    size_t arrLen = scene->numberOfObstacles;
+    for (size_t i = 0; i < arrLen; ++i) {
+        bool isInter = doesObstacleIntersectWithPlayer(
+            &scene->obstacles[i],
+            &scene->player
+        );
+
+        if ((i != arrLen - 1 && isInter) ||
+            (i == arrLen - 1 && !isInter))
+                return false;
+    }
+
+    return true;
+}
+
+
+
+
+// ---------------------------------    DISPLAYING STUFF    ---------------------------------------------
+
 void displayPlayer(const Player* player, sf::RenderWindow* window) {
     assert(player != NULL);
     assert(window != NULL);
 
-    float playerCircleRad = 20.0;
+    float playerCircleRad = (float)player->bodyRadius;
     sf::CircleShape playerCircle(playerCircleRad);
-    //playerCircle.setOrigin(100, 100);
     playerCircle.setPosition(
         (float)player->position.x - playerCircleRad,
         (float)player->position.y - playerCircleRad
@@ -48,7 +84,7 @@ void displayPlayer(const Player* player, sf::RenderWindow* window) {
     window->draw(playerCircle);
 
     int sightCircleSegmentRadius = 200;
-    int STEPS = 20;
+    int STEPS = 10;
     assert(STEPS >= 2);
 
     Vector direction = constructPoint(0, sightCircleSegmentRadius);
@@ -74,9 +110,16 @@ void displayPlayer(const Player* player, sf::RenderWindow* window) {
     window->draw(arr);
 }
 
+void displayObstacles(size_t numberOfObstacles, const Obstacle* obstacles, sf::RenderWindow* window) {
+    // last obstacle is bounding rect, so we don't want to display it
+    for (size_t i = 0; i < numberOfObstacles - 1; ++i)
+        displayObstacle(&obstacles[i], window);
+}
+
 void displayScene(Scene* scene, sf::RenderWindow* window) {
     assert(scene  != NULL);
     assert(window != NULL);
 
+    displayObstacles(scene->numberOfObstacles, scene->obstacles, window);
     displayPlayer(&scene->player, window);
 }

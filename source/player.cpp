@@ -15,10 +15,10 @@ Vector getVectorByDirection(enum Directions direction) {
 }
 
 Player constructPlayer(const Point* position, long double startingDirection, long double FOV,
-        long double stepSize, long double angleRotationStep) {
+        long double stepSize, long double angleRotationStep, int bodyRadius) {
     assert(position != NULL);
 
-    Player result = { *position, stepSize, angleRotationStep, startingDirection, FOV };
+    Player result = { *position, stepSize, angleRotationStep, startingDirection, FOV, bodyRadius };
     return result;
 }
 

@@ -21,11 +21,12 @@ struct Player {
     long double angleRotationStep = PIE / 120; // how fast player rotates
     long double currentDirection; // angle in radians
     long double FOV; // FOV = Field Of View, how much player sees
+    int bodyRadius;
 };
 
 Vector getVectorByDirection(enum Directions direction);
 Player constructPlayer(const Point* position, long double startingDirection, long double FOV,
-        long double stepSize, long double angleRotationStep);
+        long double stepSize, long double angleRotationStep, int bodyRadius);
 // void movePlayerByVector(Player* player, Vector* direction);
 void movePlayer(Player* player, Directions direction);
 void turnPlayerByAngle(Player* player, RotationDirections direction);
