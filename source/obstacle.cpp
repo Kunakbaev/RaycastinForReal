@@ -77,12 +77,12 @@ bool doesObstacleIntersectWithPlayer(const Obstacle* obj, const Player* player) 
     return false;
 }
 
-void displayObstacle(const Obstacle* obj, sf::RenderWindow* window) {
+void displayObstacle(const Obstacle* obj, sf::RenderWindow* window, int screenHeight) {
     sf::VertexArray arr(sf::TrianglesFan);
     // printf("---------------------\n");
     for (int i = 0; i < obj->numberOfSides; ++i) {
         int x = (int)obj->sides[i].x;
-        int y = (int)obj->sides[i].y;
+        int y = screenHeight - (int)obj->sides[i].y - 1;
         // printf("%d %d\n", x, y);
         sf::Vertex vert(sf::Vector2f(x, y));
         vert.color = sf::Color::White;

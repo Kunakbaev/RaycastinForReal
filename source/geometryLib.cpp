@@ -5,9 +5,6 @@
 
 #include "../include/geometryLib.hpp"
 
-const long double EPS = 1e-6;
-const long double INF = 1e18;
-
 // --------------------------------     HELPER FUNCTIONS        ------------------------------
 
 long double sq(long double x) {
@@ -62,8 +59,8 @@ Vector normalizeVector(const Vector* vector) {
 
     long double len = getVectorLen(vector);
     if (sign(len) == 0) {
-        fprintf(stderr, "Error: couldn't normalize vector, it's length is 0");
-        assert(false);
+        // fprintf(stderr, "Error: couldn't normalize vector, it's length is 0");
+        // assert(false);
     }
 
     Vector norm = constructPoint(
@@ -142,17 +139,19 @@ long double distanceToSegmByDirection(const Point* origin, const Vector* directi
 
     Vector norm = normalizeVector(direction);
     long double l = 0.0, r = INF;
-    while (sign(r - l) > 0) {
-        long double mid = (l + r) / 2;
+    while (fabsl(r - l) > EPS) {
+        long double mid = (l + r) * 0.5;
         Vector vector = vectorMultByConst(&norm, mid);
         Point segmEnd = addVector(origin, &vector);
         Segment raySegment = constructSegment(origin, &segmEnd);
 
+        //printf("l : %Lg, r : %Lg, diff : %Lg\n", l, r, fabsl(r - l));
         if (doesSegmentsIntersect(segment, &raySegment))
             r = mid;
         else
             l = mid;
     }
+    //printf("Ok\n");
 
     return r;
 }

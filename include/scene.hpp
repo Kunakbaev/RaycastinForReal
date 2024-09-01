@@ -17,5 +17,6 @@ struct Scene {
 Scene constructScene(int height, int width, const Player* player, size_t numberOfObstacles, Obstacle* obstacles);
 bool isPlayerPositionGood(const Scene* scene);
 void displayScene(Scene* scene, sf::RenderWindow* window);
+void displayScreen(const Scene* scene, sf::RenderWindow* screen);
 
 #endif

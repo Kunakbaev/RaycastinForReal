@@ -7,9 +7,15 @@ const int WIDTH = 800, HEIGHT = 800;
 
 int main() {
 
+//     Vector a = constructPoint(1, 0);
+//     a = rotateVectorByAngle(&a, PIE / 6);
+//     printf("%Lg %Lg\n", a.x, a.y);
+//
+//     return 0;
+
     // Point startingPosition = constructPoint(WIDTH / 2, HEIGHT / 2);
-    Point startingPosition = constructPoint(0, 0);
-    Player player = constructPlayer(&startingPosition, 0, PIE / 3, 0.2, 0.004, 15);
+    Point startingPosition = constructPoint(30, 30);
+    Player player = constructPlayer(&startingPosition, 0, PIE / 3, 0.2, 0.002, 0.1);
 
     Obstacle obstacles[] = {
         constructRectObstacle(100, 100, 500, 300),
@@ -18,7 +24,7 @@ int main() {
     Scene scene = constructScene(WIDTH, HEIGHT, &player, 2, obstacles);
 
     sf::RenderWindow sceneWindow(sf::VideoMode(WIDTH, HEIGHT), "Scene");
-    // sf::RenderWindow screenWindow(sf::VideoMode(WIDTH, HEIGHT), "Screen");
+    sf::RenderWindow screenWindow(sf::VideoMode(WIDTH, HEIGHT), "Screen");
 
     while (sceneWindow.isOpen()) {
         sf::Event event;
@@ -26,9 +32,22 @@ int main() {
             if (event.type == sf::Event::Closed)
                 sceneWindow.close();
         }
+        while (screenWindow.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                screenWindow.close();
+        }
+
+
+
+
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
             sceneWindow.close();
+            screenWindow.close();
         }
+
+
+
+
 
         Point previousPlayerPosition = scene.player.position;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
@@ -56,10 +75,29 @@ int main() {
         }
 
         sceneWindow.clear();
+        screenWindow.clear();
 
         displayScene(&scene, &sceneWindow);
+        displayScreen(&scene, &screenWindow);
 
         sceneWindow.display();
+        screenWindow.display();
+    }
+
+    while (screenWindow.isOpen()) {
+        sf::Event event;
+        while (screenWindow.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                screenWindow.close();
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+            screenWindow.close();
+        }
+        screenWindow.clear();
+
+        displayScreen(&scene, &screenWindow);
+
+        screenWindow.display();
     }
 
     return 0;
