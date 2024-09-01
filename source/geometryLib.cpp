@@ -117,14 +117,20 @@ bool doesRayIntersectSegm(const Point* origin, const Vector* vector, const Segme
     assert(vector  != NULL);
     assert(segment != NULL);
 
-    Vector origin2p1 = subVector(&segment->p1, origin);
-    Vector origin2p2 = subVector(&segment->p2, origin);
+    Point point = addVector(vector, origin);
+    return isInsideAngle(&point, origin, &segment->p1, &segment->p2);
+}
 
-    long double cross1 = crossMult(&origin2p1, vector);
-    long double cross2 = crossMult(&origin2p2, vector);
+void getLineKoefs(const Segment* segment, long double* a, long double* b, long double* c) {
+    assert(segment != NULL);
+    assert(a       != NULL);
+    assert(b       != NULL);
+    assert(c       != NULL);
 
-    int si = sign(cross1) * sign(cross2);
-    return si <= 0;
+    Vector direction = subVector(&segment->p2, &segment->p1);
+    *a = -direction.y;
+    *b = direction.x;
+    *c = -segment->p1.x * (*a) - segment->p1.y * (*b);
 }
 
 long double distanceToSegmByDirection(const Point* origin, const Vector* direction, const Segment* segment) {
@@ -132,28 +138,52 @@ long double distanceToSegmByDirection(const Point* origin, const Vector* directi
     assert(direction != NULL);
     assert(segment   != NULL);
 
-    // if (!doesRayIntersectSegm(origin, direction, segment))
-    //     return INF;
+    if (!doesRayIntersectSegm(origin, direction, segment))
+        return INF;
 
     // FIXME: how to do this properly??? by binary search, not very optimal ?
 
-    Vector norm = normalizeVector(direction);
-    long double l = 0.0, r = INF;
-    while (sign(r - l) > 0) {
-        long double mid = (l + r) * 0.5;
-        Vector vector = vectorMultByConst(&norm, mid);
-        Point segmEnd = addVector(origin, &vector);
-        Segment raySegment = constructSegment(origin, &segmEnd);
+    long double a = 0, b = 0, c = 0;
+    getLineKoefs(segment, &a, &b, &c);
+     Vector norm = normalizeVector(direction);
+//
 
-        //printf("l : %Lg, r : %Lg, diff : %Lg\n", l, r, fabsl(r - l));
-        if (doesSegmentsIntersect(segment, &raySegment))
-            r = mid;
-        else
-            l = mid;
-    }
-    //printf("Ok\n");
 
-    return r;
+    // FIXME: does it work??
+    long double len = (-c - a * origin->x - b * origin->y) / (a * norm.x + b * norm.y);
+    //len = fabsl(len);
+    printf("len: %Lg\n", len);
+
+    if (sign(len) < 0)
+        return INF;
+    return len;
+//
+//     long double l = 0.0, r = INF;
+//     while (sign(r - l) > 0) {
+//         long double mid = (l + r) * 0.5;
+//         Vector vector = vectorMultByConst(&norm, mid);
+//         Point segmEnd = addVector(origin, &vector);
+//         Segment raySegment = constructSegment(origin, &segmEnd);
+//
+//         //printf("l : %Lg, r : %Lg, diff : %Lg\n", l, r, fabsl(r - l));
+//         if (doesSegmentsIntersect(segment, &raySegment))
+//             r = mid;
+//         else
+//             l = mid;
+//     }
+//     printf("r : %Lg\n", r);
+//     //printf("Ok\n");
+//
+//     if (sign(r - INF) != 0) {
+//         printf("segm1 : %Lg, %Lg\n", segment->p1.x, segment->p1.y);
+//         printf("segm2 : %Lg, %Lg\n", segment->p2.x, segment->p2.y);
+//         printf("direction : %Lg, %Lg\n", direction->x, direction->y);
+//         printf("origin : %Lg, %Lg\n", origin->x, origin->y);
+//         printf("is inside : ");
+//         assert(false);
+//     }
+//
+//     return r;
 }
 
 static bool doesSegmentsIntersectHelper(const Segment* segm1, const Segment* segm2) {

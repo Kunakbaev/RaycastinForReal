@@ -3,7 +3,7 @@
 
 #include "../include/scene.hpp"
 
-const long double ROTATION_EPS = 1e-6;
+const long double ROTATION_EPS = EPS * 10;
 
 // --------------------------------------   CONSTRUCTING SCENE and checking if all objects are valid    --------------
 
