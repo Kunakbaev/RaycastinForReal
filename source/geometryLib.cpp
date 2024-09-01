@@ -59,8 +59,8 @@ Vector normalizeVector(const Vector* vector) {
 
     long double len = getVectorLen(vector);
     if (sign(len) == 0) {
-        // fprintf(stderr, "Error: couldn't normalize vector, it's length is 0");
-        // assert(false);
+        fprintf(stderr, "Error: couldn't normalize vector, it's length is 0");
+        assert(false);
     }
 
     Vector norm = constructPoint(
@@ -132,14 +132,14 @@ long double distanceToSegmByDirection(const Point* origin, const Vector* directi
     assert(direction != NULL);
     assert(segment   != NULL);
 
-    if (!doesRayIntersectSegm(origin, direction, segment))
-        return INF;
+    // if (!doesRayIntersectSegm(origin, direction, segment))
+    //     return INF;
 
     // FIXME: how to do this properly??? by binary search, not very optimal ?
 
     Vector norm = normalizeVector(direction);
     long double l = 0.0, r = INF;
-    while (fabsl(r - l) > EPS) {
+    while (sign(r - l) > 0) {
         long double mid = (l + r) * 0.5;
         Vector vector = vectorMultByConst(&norm, mid);
         Point segmEnd = addVector(origin, &vector);

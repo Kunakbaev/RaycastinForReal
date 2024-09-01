@@ -4,7 +4,7 @@
 #include <math.h>
 
 const long double EPS = 1e-6;
-const long double INF = (long double)1e9;
+const long double INF = (long double)1e6;
 const long double PIE = acosl((long double)-1.0);
 
 // --------------------------------     HELPER FUNCTIONS        ------------------------------

@@ -178,7 +178,7 @@ long double findMinDistForDirection(const Vector* direction, const Scene* scene)
     return bestDist;
 }
 
-const size_t PAIRS_ARRAY_SIZE = 100;
+const size_t PAIRS_ARRAY_SIZE = 300;
 Pair pairsArray[PAIRS_ARRAY_SIZE] = {};
 
 static void findDistancesToWalls(const Scene* scene, size_t* arrLen) {
@@ -224,14 +224,21 @@ static void findDistancesToWalls(const Scene* scene, size_t* arrLen) {
                 }
             }
             if (!isOk) continue;
+            //if (!i) printf("obj: %d, vert: %d\n", i, j);
+
             // if (!isInsideAngle(&direction, &origin, &leftRay, &rightRay))
             //     continue;
 
             long double dist = distanceToSegmByDirection(&origin, &direction, &segm);
             long double bestDist = findMinDistForDirection(&direction, scene);
+            //printf("dist : %Lg, best: %Lg\n", dist, bestDist);
+
+            // FIXME: this should work without check, because we will just draw on top and further objects are smaller
+            // UPD: it's not working
             if (sign(bestDist - dist) < 0) {
                 continue;
             }
+            //if (!i) printf("OK obj: %d, vert: %d\n", i, j);
             // printf("OKKK\n");
 
             direction = rotateVectorByAngle(&direction, ROTATION_EPS);
@@ -318,7 +325,7 @@ void displayScreen(const Scene* scene, sf::RenderWindow* screen) {
 
     size_t arrLen = 0;
     findDistancesToWalls(scene, &arrLen);
-    // printf("arrLen : %d\n", arrLen);
+    //printf("arrLen : %d\n", arrLen);
     // printf("cur dir: %Lg\n", scene->player.currentDirection);
     //return;
 
@@ -326,22 +333,23 @@ void displayScreen(const Scene* scene, sf::RenderWindow* screen) {
     int cntLoops = maxAngle / (2 * PIE);
     long double startAngle = maxAngle - cntLoops * 2 * PIE;
     //printf("--------------------\n");
+    int previousEnd = 0;
     for (size_t i = 1; i < arrLen; i += 2) {
         Pair p1 = pairsArray[i - 1];
         Pair p2 = pairsArray[i];
 
         long double koef1 = (p1.first - p2.first) / scene->player.FOV;
-        int width         = (int)(scene->width * koef1);
+        int width         = roundl(scene->width * koef1);
         long double koef2 = (startAngle - p1.first) / scene->player.FOV;
-        int start         = (int)(scene->width * koef2);
-        int end           = start + width;
+        int end           = previousEnd + width;
         int startHeight   = getColumnHeightByDistance(scene, p1.second);
         int endHeight     = getColumnHeightByDistance(scene, p2.second);
         int colorStart    = getColumnColorByDistance(p1.second);
         int colorEnd      = getColumnColorByDistance(p2.second);
         //printf("%Lg %Lg\n", p1.first, p2.first);
 
-        drawTrapezoid(start, end, startHeight, endHeight, scene->height,
+        drawTrapezoid(previousEnd, end, startHeight, endHeight, scene->height,
             screen, colorStart, colorEnd);
+        previousEnd = end;
     }
 }
