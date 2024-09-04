@@ -9,7 +9,7 @@ struct Obstacle {
     Point* sides;
 };
 
-Obstacle constructObstacle(size_t numberOfSides, Point* sides);
+Obstacle constructObstacle(size_t numberOfSides, const Point* sides);
 Obstacle constructRectObstacle(int x1, int y1, int x2, int y2);
 Obstacle constructCircleObstacle(const Point* center, int radius, size_t numberOfPoints);
 Segment getSegment(const Obstacle* obj, size_t pointIndex);

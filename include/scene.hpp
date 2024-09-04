@@ -14,6 +14,7 @@ struct Scene {
     Obstacle* obstacles;
 };
 
+// FIXME: pointer to return value
 Scene constructScene(int height, int width, const Player* player, size_t numberOfObstacles, Obstacle* obstacles);
 bool isPlayerPositionGood(const Scene* scene);
 void displayScene(Scene* scene, sf::RenderWindow* window);

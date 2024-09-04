@@ -11,6 +11,8 @@ long double sq(long double x) {
     return x * x;
 }
 
+// TODO: лекция Северов float
+
 int sign(long double x) {
     if (x < -EPS) return -1;
     return x > EPS;
@@ -83,7 +85,7 @@ Segment constructSegment(const Point* p1, const Point* p2) {
     return result;
 }
 
-
+// FIXME: dot product
 long double scalarMult(const Point* p1, const Point* p2) {
     assert(p1 != NULL);
     assert(p2 != NULL);
@@ -105,8 +107,8 @@ Vector rotateVectorByAngle(const Vector* vector, long double angle) {
     long double sinAngle = sinl(angle);
 
     Vector result = {
-        vector->x * cosAngle - vector->y * sinAngle,
-        vector->x * sinAngle + vector->y * cosAngle
+        vector->x * cosAngle - vector->y * sinAngle, // ( cos -sin )
+        vector->x * sinAngle + vector->y * cosAngle  // ( sin  cos )
     };
 
     return result;
@@ -152,7 +154,7 @@ long double distanceToSegmByDirection(const Point* origin, const Vector* directi
     // FIXME: does it work??
     long double len = (-c - a * origin->x - b * origin->y) / (a * norm.x + b * norm.y);
     //len = fabsl(len);
-    printf("len: %Lg\n", len);
+    // printf("len: %Lg\n", len);
 
     if (sign(len) < 0)
         return INF;
@@ -190,7 +192,7 @@ static bool doesSegmentsIntersectHelper(const Segment* segm1, const Segment* seg
     assert(segm1 != NULL);
     assert(segm2 != NULL);
 
-    Vector tmp = subVector(&segm2->p1, &segm1->p1);
+    Vector tmp       = subVector(&segm2->p1, &segm1->p1);
     Vector direction = subVector(&segm1->p2, &segm1->p1);
     long double cross1 = crossMult(&tmp, &direction);
 

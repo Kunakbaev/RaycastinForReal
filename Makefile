@@ -17,7 +17,7 @@ SRC := $(wildcard ./$(SOURCE_DIR)/*.cpp)
 OBJ := $(patsubst %.cpp, $(BUILD_DIR)/%.o, $(notdir ${SRC}))
 
 $(LIB_RUN_NAME): $(OBJ)
-	# @sudo apt-get install libsfml-dev
+	#  Prerequisites: sudo apt-get install libsfml-dev
 	@$(CC) $^ -o $(BUILD_DIR)/$(LIB_RUN_NAME) $(LIBS) $(CFLAGS)
 
 $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(BUILD_DIR)

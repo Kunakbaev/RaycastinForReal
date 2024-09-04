@@ -5,7 +5,7 @@
 #include "../include/geometryLib.hpp"
 #include "../include/obstacle.hpp"
 
-Obstacle constructObstacle(size_t numberOfSides, Point* sides) {
+Obstacle constructObstacle(size_t numberOfSides, const Point* sides) {
     assert(numberOfSides > 0);
     assert(sides         != NULL);
 
@@ -43,9 +43,9 @@ Obstacle constructCircleObstacle(const Point* center, int radius, size_t numberO
     long double angleDelta = 2 * PIE / numberOfPoints;
     Vector direction = constructPoint(radius, 0);
 
-    for (size_t i = 0; i < numberOfPoints; ++i) {
+    for (size_t pointInd = 0; pointInd < numberOfPoints; ++pointInd) {
         Point point = addVector(center, &direction);
-        obj.sides[i] = point;
+        obj.sides[pointInd] = point;
         direction = rotateVectorByAngle(&direction, angleDelta);
     }
 
@@ -70,11 +70,8 @@ bool doesObstaclesIntersect(const Obstacle* obj1, const Obstacle* obj2) {
         Segment segm1 = getSegment(obj1, i);
         for (size_t j = 0; j < obj2->numberOfSides; ++j) {
             Segment segm2 = getSegment(obj2, j);
-
-            // FIXME: what about when point is on segment?
-            if (doesSegmentsIntersect(&segm1, &segm2)) {
+            if (doesSegmentsIntersect(&segm1, &segm2))
                 return true;
-            }
         }
     }
 
@@ -86,26 +83,22 @@ bool doesObstacleIntersectWithPlayer(const Obstacle* obj, const Player* player) 
     assert(player != NULL);
 
     // FIXME: for now we assume that's a convex polygon, and we don't consider player's body radius
-    for (size_t i = 1; i + 1 < obj->numberOfSides; ++i) {
+    for (size_t sideIndex = 1; sideIndex + 1 < obj->numberOfSides; ++sideIndex) {
         if (isInsideTriangle(&player->position,
-            &obj->sides[0], &obj->sides[i], &obj->sides[i + 1])) {
-                // printf("point 0    : %Lg, %Lg\n", obj->sides[0].x, obj->sides[0].y);
-                // printf("point i    : %Lg, %Lg\n", obj->sides[i].x, obj->sides[i].y);
-                // printf("point i + 1: %Lg, %Lg\n", obj->sides[i + 1].x, obj->sides[i + 1].y);
-                // printf("i : %d\n", i);
+            &obj->sides[0], &obj->sides[sideIndex], &obj->sides[sideIndex + 1]))
                 return true;
-            }
     }
     return false;
 }
 
 void displayObstacle(const Obstacle* obj, sf::RenderWindow* window, int screenHeight) {
+    assert(obj    != NULL);
+    assert(window != NULL);
+
     sf::VertexArray arr(sf::TrianglesFan);
-    // printf("---------------------\n");
-    for (int i = 0; i < obj->numberOfSides; ++i) {
-        int x = (int)obj->sides[i].x;
-        int y = screenHeight - (int)obj->sides[i].y - 1;
-        // printf("%d %d\n", x, y);
+    for (size_t sideIndex = 0; sideIndex < obj->numberOfSides; ++sideIndex) {
+        int x = (int)obj->sides[sideIndex].x;
+        int y = screenHeight - (int)obj->sides[sideIndex].y - 1;
         sf::Vertex vert(sf::Vector2f(x, y));
         vert.color = sf::Color::White;
         arr.append(vert);

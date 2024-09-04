@@ -14,16 +14,17 @@ int main() {
     Obstacle obstacles[] = {
         constructRectObstacle(100, 100, 500, 300),
         constructRectObstacle(300, 350, 600, 550),
-        constructCircleObstacle(&circleCenter, 50, 3)
+        constructCircleObstacle(&circleCenter, 50, 60)
     };
     Scene scene = constructScene(WIDTH, HEIGHT, &player, 3, obstacles);
 
-    sf::RenderWindow sceneWindow(sf::VideoMode(WIDTH, HEIGHT), "Scene");
+    sf::RenderWindow  sceneWindow(sf::VideoMode(WIDTH, HEIGHT), "Scene");
     sf::RenderWindow screenWindow(sf::VideoMode(WIDTH, HEIGHT), "Screen");
 
     screenWindow.setMouseCursorVisible(false);
     while (sceneWindow.isOpen()) {
         sf::Event event;
+        // FIXME: делаем новую функцию
         while (sceneWindow.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 sceneWindow.close();
@@ -33,20 +34,15 @@ int main() {
                 screenWindow.close();
         }
 
-
-
-
+        //                       FIXME:        QUIT_KEY
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
             sceneWindow.close();
             screenWindow.close();
         }
 
-
-
-
-
         Point previousPlayerPosition = scene.player.position;
         //bool isMovePlayer = false;
+        // isForwardKeyPressed
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
             //movePlayer(&scene.player, DIRECTION_UP);
             //isMovePlayer = true;
@@ -68,6 +64,7 @@ int main() {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
             turnPlayerByAngle(&scene.player, TURN_LEFT);
         }
+        // FIXME: add switch
 
         // new player position is not valid, so we don't move
         if (!isPlayerPositionGood(&scene)) {
