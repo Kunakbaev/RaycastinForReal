@@ -3,6 +3,13 @@
 
 #include "../include/scene.hpp"
 
+#define FREE(x)             \
+    do {                    \
+        free(x);            \
+        x = NULL;           \
+    } while(0)
+
+const size_t PAIRS_ARRAY_BUFFER_SIZE = 300;
 const long double ROTATION_EPS                 = EPS * 10;
 const int MAGIC_COLUMN_HEIGHT_SCALE_FACTOR     = 80;
 const int MAGIC_COLUMN_BRIGHTNESS_SCALE_FACTOR = 50;
@@ -56,10 +63,14 @@ Scene constructScene(int height, int width, const Player* player, size_t numberO
         }
     }
 
-     if (!isPlayerPositionGood(&scene)) {
+    if (!isPlayerPositionGood(&scene)) {
         fprintf(stderr, "player position is not valid\n");
         assert(false);
     }
+
+    scene.pairsArraySize = 0;
+    scene.pairsArray = (Pair*)calloc(PAIRS_ARRAY_BUFFER_SIZE, sizeof(Pair));
+    assert(scene.pairsArray != NULL);
 
     return scene;
 }
@@ -85,50 +96,90 @@ bool isPlayerPositionGood(const Scene* scene) {
 
 // ---------------------------------    DISPLAYING STUFF    ---------------------------------------------
 
-static void displayPlayer(const Player* player, sf::RenderWindow* window, int screenHeight) {
-    assert(player != NULL);
+static void displayPlayer(const Scene* scene, sf::RenderWindow* window, int screenHeight) {
+    assert(scene  != NULL);
     assert(window != NULL);
 
-    float playerCircleRad = (float)player->bodyRadius;
+    float playerCircleRad = (float)scene->player.bodyRadius;
     sf::CircleShape playerCircle(playerCircleRad);
     playerCircle.setPosition(
-        (float)player->position.x - playerCircleRad,
-        (float)(screenHeight - ((float)player->position.y) - 1 - playerCircleRad)
+        (float)scene->player.position.x - playerCircleRad,
+        (float)(screenHeight - ((float)scene->player.position.y) - 1 - playerCircleRad)
     );
     playerCircle.setFillColor(sf::Color::White);
     window->draw(playerCircle);
 
-    int sightCircleSegmentRadius = 200;
-    size_t STEPS = 10;
-    assert(STEPS >= 2);
+//     int sightCircleSegmentRadius = 200;
+//     size_t STEPS = 10;
+//     assert(STEPS >= 2);
+//
+//     Vector direction = constructPoint(sightCircleSegmentRadius, 0);
+//     direction = rotateVectorByAngle(&direction,
+//                                     scene->player.currentDirection + scene->player.FOV / 2);
+//     // printf("direction : %Lg %Lg\n", direction.x, direction.y);
+//
+//     long double angleDelta = scene->player.FOV / (STEPS - 1);
 
-    Vector direction = constructPoint(sightCircleSegmentRadius, 0);
-    direction = rotateVectorByAngle(&direction,
-                                    player->currentDirection + player->FOV / 2);
-    // printf("direction : %Lg %Lg\n", direction.x, direction.y);
+    int previousEnd = 0;
+    for (size_t i = 1; i < scene->pairsArraySize; i += 2) {
+        Pair p1 = scene->pairsArray[i - 1];
+        Pair p2 = scene->pairsArray[i];
 
-    long double angleDelta = player->FOV / (STEPS - 1);
-    sf::VertexArray arr(sf::TrianglesFan);
+        Vector direction = constructPoint(1, 0);
+        direction = rotateVectorByAngle(&direction,
+                                        p1.first);
+        vectorMultByConst(&direction, p1.second);
+        Point one = addVector(&scene->player.position, &direction);
 
-    sf::Vertex vert(sf::Vector2f(player->position.x, player->position.y));
-    vert.color = sf::Color::Magenta;
-    arr.append(vert);
-    for (size_t _ = 0; _ < STEPS; ++_) {
-        Point point = addVector(&player->position, &direction);
-        direction = rotateVectorByAngle(&direction, -angleDelta);
+        direction = constructPoint(1, 0);
+        direction = rotateVectorByAngle(&direction,
+                                        p2.first);
+        vectorMultByConst(&direction, p2.second);
+        Point two = addVector(&scene->player.position, &direction);
+        printf("---------------\n");
+        printf("one : %Lg, %Lg\n", one.x, one.y);
+        printf("two : %Lg, %Lg\n", two.x, two.y);
+        printf("beb : %Lg, %Lg\n", scene->player.position.x, scene->player.position.y);
 
-        sf::Vertex vert(sf::Vector2f(point.x, point.y));
+        sf::VertexArray arr(sf::TriangleFan);
+        sf::Vertex vert(sf::Vector2f(one.x, one.y));
         vert.color = sf::Color::Magenta;
         arr.append(vert);
-    }
-    arr.append(vert);
 
-    for (size_t pointInd = 0; pointInd < arr.getVertexCount(); ++pointInd)
-        arr[pointInd].position.y = screenHeight - arr[pointInd].position.y - 1;
-    window->draw(arr);
+        vert.position = sf::Vector2f(two.x, two.y);
+        arr.append(vert);
+
+        vert.position = sf::Vector2f(scene->player.position.x, scene->player.position.y);
+        arr.append(vert);
+
+        printf("arr : \n");
+        for (size_t pointInd = 0; pointInd < arr.getVertexCount(); ++pointInd) {
+            arr[pointInd].position.y = screenHeight - arr[pointInd].position.y - 1;
+            printf("    p : %Lf, %Lf\n", arr[pointInd].position.x, arr[pointInd].position.y);
+        }
+
+        window->draw(arr);
+    }
+
+//     sf::Vertex vert(sf::Vector2f(player->position.x, player->position.y));
+//     vert.color = sf::Color::Magenta;
+//     arr.append(vert);
+//     for (size_t _ = 0; _ < STEPS; ++_) {
+//         Point point = addVector(&player->position, &direction);
+//         direction = rotateVectorByAngle(&direction, -angleDelta);
+//
+//         sf::Vertex vert(sf::Vector2f(point.x, point.y));
+//         vert.color = sf::Color::Magenta;
+//         arr.append(vert);
+//     }
+//     arr.append(vert);
+//
+    // for (size_t pointInd = 0; pointInd < arr.getVertexCount(); ++pointInd)
+    //     arr[pointInd].position.y = screenHeight - arr[pointInd].position.y - 1;
+//     window->draw(arr);
 }
 
-void displayObstacles(size_t numberOfObstacles, const Obstacle* obstacles, sf::RenderWindow* window, int screenHeight) {
+static void displayObstacles(size_t numberOfObstacles, const Obstacle* obstacles, sf::RenderWindow* window, int screenHeight) {
     // last obstacle is bounding rect, so we don't want to display it
     for (size_t i = 0; i < numberOfObstacles - 1; ++i)
         displayObstacle(&obstacles[i], window, screenHeight);
@@ -138,7 +189,7 @@ void displayScene(Scene* scene, sf::RenderWindow* window) {
     assert(scene  != NULL);
     assert(window != NULL);
 
-    displayPlayer(&scene->player, window, scene->height);
+    displayPlayer(scene, window, scene->height);
     displayObstacles(scene->numberOfObstacles, scene->obstacles, window, scene->height);
 }
 
@@ -147,12 +198,7 @@ void displayScene(Scene* scene, sf::RenderWindow* window) {
 
 // --------------------------------     FINDING DISTANCES TO WALLS      ------------------------------
 
-struct Pair {
-    long double first;
-    long double second;
-};
-
-int compare(const void* one, const void* two) {
+static int compare(const void* one, const void* two) {
     assert(one != NULL);
     assert(two != NULL);
 
@@ -187,69 +233,41 @@ static long double findMinDistForDirection(const Vector* direction, const Scene*
     return bestDist;
 }
 
-const size_t PAIRS_ARRAY_SIZE = 300;
-// FIXME:
-Pair pairsArray[PAIRS_ARRAY_SIZE] = {};
-
-static void findDistancesToWalls(const Scene* scene, size_t* arrLen) {
-    assert(scene  != NULL);
-    assert(arrLen != NULL);
-
-    long double FOVhalf  = scene->player.FOV / 2;
-    long double minAngle = scene->player.currentDirection - FOVhalf;
-    long double maxAngle = scene->player.currentDirection + FOVhalf;
-    int cntLoops = (int)(maxAngle / (2 * PIE));
-    minAngle -= cntLoops * 2 * PIE;
-    maxAngle -= cntLoops * 2 * PIE;
+static void addMostLeftAndRightRays(Scene* scene) {
+    assert(scene             != NULL);
+    assert(scene->pairsArray != NULL);
 
     Vector leftRay = constructPoint(1, 0);
     leftRay = rotateVectorByAngle(&leftRay, scene->player.currentDirection + scene->player.FOV / 2);
     Vector rightRay = rotateVectorByAngle(&leftRay, -scene->player.FOV);
-    // printf("left  %Lg : , %Lg : \n", leftRay.x, leftRay.y);
-    // printf("right %Lg : , %Lg : \n", rightRay.x, rightRay.y);
-    // printf("minAngle: %Lg, maxAngle: %Lg\n", minAngle, maxAngle);
+    long double leftDist = findMinDistForDirection(&leftRay, scene);
+    long double rightDist = findMinDistForDirection(&rightRay, scene);
 
-    size_t numberOfPairs = 0;
+    scene->pairsArray[scene->pairsArraySize++] = {getMaxFOVangle(&scene->player), leftDist};
+    scene->pairsArray[scene->pairsArraySize++] = {getMinFOVangle(&scene->player), rightDist};
+}
+
+static void findDistancesToWalls(Scene* scene) {
+    assert(scene != NULL);
+
+    scene->pairsArraySize = 0;
     Point origin = scene->player.position;
     for (size_t objInd = 0; objInd < scene->numberOfObstacles; ++objInd) {
         Obstacle obj = scene->obstacles[objInd];
         for (size_t sideInd = 0; sideInd < obj.numberOfSides; ++sideInd) {
             Point point = obj.sides[sideInd];
-            //printf("point : %Lg, %Lg\n", point.x, point.y);
             Segment segm = getSegment(&obj, sideInd);
 
             Vector direction = subVector(&point, &origin);
-            long double angle = getVectorAngle(&direction);
-
-             // FIXME: not proper way to check this
-            // this ray is not in our field of view
-            bool isOk = false;
-            for (int j = -3; j <= 3; ++j) { // FIXME: second j
-                long double cur = angle + j * 2 * PIE;
-                //printf("cur : %Lg\n", cur);
-                if (sign(cur - minAngle) >= 0 && sign(cur - maxAngle) <= 0) {
-                    isOk = true;
-                    angle = cur;
-                    break;
-                }
-            }
+            long double angle = NAN;
+            bool isOk = checkIfDirectionInsideFOV(&scene->player, direction, &angle);
             if (!isOk) continue;
-            //if (!i) printf("obj: %d, vert: %d\n", i, j);
-
-            // if (!isInsideAngle(&direction, &origin, &leftRay, &rightRay))
-            //     continue;
 
             long double dist = distanceToSegmByDirection(&origin, &direction, &segm);
             long double bestDist = findMinDistForDirection(&direction, scene);
-            //printf("dist : %Lg, best: %Lg\n", dist, bestDist);
 
-            // FIXME: this should work without check, because we will just draw on top and further objects are smaller
-            // UPD: it's not working
-            if (sign(bestDist - dist) < 0) {
+            if (sign(bestDist - dist) < 0)
                 continue;
-            }
-            //if (!i) printf("OK obj: %d, vert: %d\n", i, j);
-            // printf("OKKK\n");
 
             direction = rotateVectorByAngle(&direction, ROTATION_EPS);
             for (int isToRight = 0; isToRight <= 1; ++isToRight) {
@@ -258,22 +276,16 @@ static void findDistancesToWalls(const Scene* scene, size_t* arrLen) {
 
                 dist = findMinDistForDirection(&direction, scene);
                 Pair pair = {angle + (isToRight ? -ROTATION_EPS : ROTATION_EPS), dist};
-                assert(numberOfPairs < PAIRS_ARRAY_SIZE);
-                pairsArray[numberOfPairs++] = pair;
+                assert(scene->pairsArraySize < PAIRS_ARRAY_BUFFER_SIZE);
+                scene->pairsArray[scene->pairsArraySize++] = pair;
 
                 direction = rotateVectorByAngle(&direction, -2 * ROTATION_EPS);
             }
         }
     }
 
-    long double leftDist = findMinDistForDirection(&leftRay, scene);
-    long double rightDist = findMinDistForDirection(&rightRay, scene);
-
-    pairsArray[numberOfPairs++] = {maxAngle, leftDist};
-    pairsArray[numberOfPairs++] = {minAngle, rightDist};
-
-    *arrLen = numberOfPairs;
-    qsort(pairsArray, numberOfPairs, sizeof(Pair), compare);
+    addMostLeftAndRightRays(scene);
+    qsort(scene->pairsArray, scene->pairsArraySize, sizeof(Pair), compare);
 }
 
 static int getColumnColorByDistance(long double dist) {
@@ -284,10 +296,7 @@ static int getColumnColorByDistance(long double dist) {
     if (sign(koef - 1) > 0)
         koef = 1.0;
 
-    int color = (int)(MAX_BRIGHTNESS_VALUE * koef);
-
-    // FIXME:
-    return color;
+    return (int)(MAX_BRIGHTNESS_VALUE * koef);
 }
 
 static int getColumnHeightByDistance(const Scene* scene, long double dist) {
@@ -336,21 +345,20 @@ drawTrapezoid(int start,
     screen->draw(arr);
 }
 
-void displayScreen(const Scene* scene, sf::RenderWindow* screen) {
+void displayScreen(Scene* scene, sf::RenderWindow* screen) {
     assert(scene  != NULL);
     assert(screen != NULL);
 
-    size_t arrLen = 0;
-    findDistancesToWalls(scene, &arrLen);
+    findDistancesToWalls(scene);
     //printf("arrLen : %d\n", arrLen);
     // printf("cur dir: %Lg\n", scene->player.currentDirection);
     //return;
 
     //printf("--------------------\n");
     int previousEnd = 0;
-    for (size_t i = 1; i < arrLen; i += 2) {
-        Pair p1 = pairsArray[i - 1];
-        Pair p2 = pairsArray[i];
+    for (size_t i = 1; i < scene->pairsArraySize; i += 2) {
+        Pair p1 = scene->pairsArray[i - 1];
+        Pair p2 = scene->pairsArray[i];
 
         long double koef1 = (p1.first - p2.first) / scene->player.FOV;
         int width         = (int)roundl(scene->width * koef1);
@@ -365,4 +373,17 @@ void displayScreen(const Scene* scene, sf::RenderWindow* screen) {
             screen, colorStart, colorEnd);
         previousEnd = end;
     }
+}
+
+void destructScene(Scene* scene) {
+    assert(scene != NULL);
+
+    // for (size_t obstacleInd = 0; obstacleInd < scene->numberOfObstacles; ++obstacleInd) {
+    //     destructObstacle(scene->obstacles[obstacleInd]);
+    // }
+    FREE(scene->obstacles);
+    scene->numberOfObstacles = 0;
+
+    FREE(scene->pairsArray);
+    scene->pairsArraySize = 0;
 }

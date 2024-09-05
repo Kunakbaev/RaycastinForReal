@@ -49,3 +49,46 @@ void turnPlayerByAngle(Player* player, RotationDirections direction) {
         delta *= -1;
     player->currentDirection += delta;
 }
+
+long double getMaxFOVangle(const Player* player) {
+    assert(player != NULL);
+
+    long double maxAngle = player->currentDirection + player->FOV / 2;
+    int cntLoops = (int)(maxAngle / (2 * PIE));
+    maxAngle -= cntLoops * 2 * PIE;
+    return maxAngle;
+}
+
+long double getMinFOVangle(const Player* player) {
+    assert(player != NULL);
+
+    long double maxAngle = player->currentDirection + player->FOV / 2;
+    long double minAngle = player->currentDirection - player->FOV / 2;
+    int cntLoops = (int)(maxAngle / (2 * PIE));
+    // printf("maxAngle : %Lg\n", maxAngle);
+    // printf("cntLoops : %d\n", cntLoops);
+    minAngle -= cntLoops * 2 * PIE;
+    return minAngle;
+}
+
+// Vector is small, so copy
+bool checkIfDirectionInsideFOV(const Player* player, Vector direction, long double* validAngle) {
+    assert(player     != NULL);
+    assert(validAngle != NULL);
+
+    long double minAngle = getMinFOVangle(player);
+    long double maxAngle = getMaxFOVangle(player);
+    *validAngle = getVectorAngle(&direction);
+
+    // FIXME: not proper way to check this
+    // this ray is not in our field of view
+    for (int j = -3; j <= 3; ++j) {
+        long double cur = *validAngle + j * 2 * PIE;
+        if (0 <= sign(cur - minAngle) && sign(cur - maxAngle) <= 0) {
+            *validAngle = cur;
+            return true;
+        }
+    }
+
+    return false;
+}

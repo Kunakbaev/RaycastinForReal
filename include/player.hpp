@@ -32,5 +32,8 @@ void movePlayerBackward(Player* player);
 // void movePlayerByVector(Player* player, Vector* direction);
 void movePlayer(Player* player, Directions direction);
 void turnPlayerByAngle(Player* player, RotationDirections direction);
+long double getMinFOVangle(const Player* player);
+long double getMaxFOVangle(const Player* player);
+bool checkIfDirectionInsideFOV(const Player* player, Vector direction, long double* angle);
 
 #endif

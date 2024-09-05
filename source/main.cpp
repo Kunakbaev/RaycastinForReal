@@ -8,13 +8,14 @@ const int WIDTH = 800, HEIGHT = 800;
 int main() {
     // Point startingPosition = constructPoint(WIDTH / 2, HEIGHT / 2);
     Point startingPosition = constructPoint(697.428, 523.2);
-    Player player = constructPlayer(&startingPosition, 2.6579, PIE / 3, 0.04, 0.0004, 10);
+    int FOVinDegrees = 60;
+    Player player = constructPlayer(&startingPosition, 2.6579, FOVinDegrees * (PIE / 180), 0.04, 0.0004, 10);
 
     Point circleCenter = constructPoint(600, 650);
     Obstacle obstacles[] = {
         constructRectObstacle(100, 100, 500, 300),
         constructRectObstacle(300, 350, 600, 550),
-        constructCircleObstacle(&circleCenter, 50, 60)
+        constructCircleObstacle(&circleCenter, 50, 10)
     };
     Scene scene = constructScene(WIDTH, HEIGHT, &player, 3, obstacles);
 
@@ -74,8 +75,8 @@ int main() {
         sceneWindow.clear();
         screenWindow.clear();
 
-        displayScene(&scene, &sceneWindow);
         displayScreen(&scene, &screenWindow);
+        displayScene(&scene, &sceneWindow);
 
         sceneWindow.display();
         screenWindow.display();

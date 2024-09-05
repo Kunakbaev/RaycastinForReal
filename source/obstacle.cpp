@@ -5,6 +5,12 @@
 #include "../include/geometryLib.hpp"
 #include "../include/obstacle.hpp"
 
+#define FREE(x)             \
+    do {                    \
+        free(x);            \
+        x = NULL;           \
+    } while(0)
+
 Obstacle constructObstacle(size_t numberOfSides, const Point* sides) {
     assert(numberOfSides > 0);
     assert(sides         != NULL);
@@ -105,4 +111,9 @@ void displayObstacle(const Obstacle* obj, sf::RenderWindow* window, int screenHe
     }
 
     window->draw(arr);
+}
+
+void destructObstacle(Obstacle* obstacle) {
+    FREE(obstacle->sides);
+    obstacle->numberOfSides = 0;
 }
