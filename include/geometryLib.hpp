@@ -45,6 +45,7 @@ bool doesSegmentsIntersect(const Segment* segm1, const Segment* segm2);
 Vector rotateVectorByAngle(const Vector* vector, long double angle);
 bool doesRayIntersectSegm(const Point* origin, const Vector* vector, const Segment* segment);
 long double distanceToSegmByDirection(const Point* origin, const Vector* direction, const Segment* segment);
+long double getDistanceFromPointToSegm(const Point* point, const Segment* segm);
 bool isInsideAngle(const Point* point, const Point* origin, const Point* p1, const Point* p2);
 bool isInsideTriangle(const Point* point, const Point* p1, const Point* p2, const Point* p3);
 

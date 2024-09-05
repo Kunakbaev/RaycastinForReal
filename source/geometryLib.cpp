@@ -26,6 +26,9 @@ Point constructPoint(long double x, long double y) {
 }
 
 Vector addVector(const Vector* v1, const Vector* v2) {
+    assert(v1 != NULL);
+    assert(v2 != NULL);
+
     Vector result = {
         v1->x + v2->x,
         v1->y + v2->y,
@@ -35,6 +38,9 @@ Vector addVector(const Vector* v1, const Vector* v2) {
 }
 
 Vector subVector(const Vector* v1, const Vector* v2) {
+    assert(v1 != NULL);
+    assert(v2 != NULL);
+
     Vector result = {
         v1->x - v2->x,
         v1->y - v2->y,
@@ -44,6 +50,8 @@ Vector subVector(const Vector* v1, const Vector* v2) {
 }
 
 Vector vectorMultByConst(const Vector* vector, long double koef) {
+    assert(vector != NULL);
+
     Vector result = {
         vector->x * koef,
         vector->y * koef
@@ -53,6 +61,8 @@ Vector vectorMultByConst(const Vector* vector, long double koef) {
 }
 
 long double getVectorLen(const Vector* vector) {
+    assert(vector != NULL);
+
     return sqrtl(sq(vector->x) + sq(vector->y));
 }
 
@@ -73,6 +83,8 @@ Vector normalizeVector(const Vector* vector) {
 }
 
 long double getVectorAngle(const Vector* vector) {
+    assert(vector != NULL);
+
     return atan2(vector->y, vector->x);
 }
 
@@ -143,58 +155,22 @@ long double distanceToSegmByDirection(const Point* origin, const Vector* directi
     if (!doesRayIntersectSegm(origin, direction, segment))
         return INF;
 
-    // FIXME: how to do this properly??? by binary search, not very optimal ?
-
     long double a = 0, b = 0, c = 0;
     getLineKoefs(segment, &a, &b, &c);
-     Vector norm = normalizeVector(direction);
-//
-
-
-    // FIXME: does it work??
+    Vector norm = normalizeVector(direction);
     long double len = (-c - a * origin->x - b * origin->y) / (a * norm.x + b * norm.y);
-    //len = fabsl(len);
-    // printf("len: %Lg\n", len);
-
     if (sign(len) < 0)
         return INF;
     return len;
-//
-//     long double l = 0.0, r = INF;
-//     while (sign(r - l) > 0) {
-//         long double mid = (l + r) * 0.5;
-//         Vector vector = vectorMultByConst(&norm, mid);
-//         Point segmEnd = addVector(origin, &vector);
-//         Segment raySegment = constructSegment(origin, &segmEnd);
-//
-//         //printf("l : %Lg, r : %Lg, diff : %Lg\n", l, r, fabsl(r - l));
-//         if (doesSegmentsIntersect(segment, &raySegment))
-//             r = mid;
-//         else
-//             l = mid;
-//     }
-//     printf("r : %Lg\n", r);
-//     //printf("Ok\n");
-//
-//     if (sign(r - INF) != 0) {
-//         printf("segm1 : %Lg, %Lg\n", segment->p1.x, segment->p1.y);
-//         printf("segm2 : %Lg, %Lg\n", segment->p2.x, segment->p2.y);
-//         printf("direction : %Lg, %Lg\n", direction->x, direction->y);
-//         printf("origin : %Lg, %Lg\n", origin->x, origin->y);
-//         printf("is inside : ");
-//         assert(false);
-//     }
-//
-//     return r;
 }
 
 static bool doesSegmentsIntersectHelper(const Segment* segm1, const Segment* segm2) {
     assert(segm1 != NULL);
     assert(segm2 != NULL);
 
-    Vector tmp       = subVector(&segm2->p1, &segm1->p1);
-    Vector direction = subVector(&segm1->p2, &segm1->p1);
-    long double cross1 = crossMult(&tmp, &direction);
+    Vector tmp         = subVector(&segm2->p1, &segm1->p1);
+    Vector direction   = subVector(&segm1->p2, &segm1->p1);
+    long double cross1 = crossMult(&tmp      , &direction);
 
     tmp = subVector(&segm2->p2, &segm1->p1);
     long double cross2 = crossMult(&tmp, &direction);
@@ -206,9 +182,33 @@ bool doesSegmentsIntersect(const Segment* segm1, const Segment* segm2) {
     assert(segm1 != NULL);
     assert(segm2 != NULL);
 
-    bool ok1 = doesSegmentsIntersectHelper(segm1, segm2);
-    bool ok2 = doesSegmentsIntersectHelper(segm2, segm1);
-    return ok1 && ok2;
+    return doesSegmentsIntersectHelper(segm1, segm2) &&
+           doesSegmentsIntersectHelper(segm2, segm1);
+}
+
+long double getDistanceFromPointToSegm(const Point* point, const Segment* segm) {
+    assert(point != NULL);
+    assert(segm  != NULL);
+
+    Vector segmDirection = subVector(&segm->p2, &segm->p1);
+    Vector segmDirInvert = vectorMultByConst(&segmDirection, -1);
+    Vector p1ToPoint     = subVector(point, &segm->p1);
+    Vector p2ToPoint     = subVector(point, &segm->p2);
+
+    long double scalar1 = scalarMult(&segmDirection, &p1ToPoint);
+    long double scalar2 = scalarMult(&segmDirInvert, &p2ToPoint);
+    if (sign(scalar1) > 0 && sign(scalar2) > 0) {
+        long double segmLen = getVectorLen(&segmDirection);
+        assert(sign(segmLen) > 0);
+        long double cross = crossMult(&segmDirection, &p1ToPoint);
+        return fabsl(cross / segmLen);
+    }
+
+    long double dist1 = getVectorLen(&p1ToPoint);
+    long double dist2 = getVectorLen(&p2ToPoint);
+    if (sign(dist1 - dist2) < 0)
+        return dist1;
+    return dist2;
 }
 
 bool isInsideAngle(const Point* point, const Point* origin, const Point* p1, const Point* p2) {

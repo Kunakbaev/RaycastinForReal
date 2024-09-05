@@ -20,8 +20,8 @@ Obstacle constructObstacle(size_t numberOfSides, const Point* sides) {
     result.sides = (Point*)calloc(numberOfSides, sizeof(Point));
     assert(result.sides != NULL);
 
-    for (size_t i = 0; i < numberOfSides; ++i)
-        result.sides[i] = sides[i];
+    for (size_t sideInd = 0; sideInd < numberOfSides; ++sideInd)
+        result.sides[sideInd] = sides[sideInd];
     return result;
 }
 
@@ -72,10 +72,10 @@ bool doesObstaclesIntersect(const Obstacle* obj1, const Obstacle* obj2) {
     assert(obj1 != NULL);
     assert(obj2 != NULL);
 
-    for (size_t i = 0; i < obj1->numberOfSides; ++i) {
-        Segment segm1 = getSegment(obj1, i);
-        for (size_t j = 0; j < obj2->numberOfSides; ++j) {
-            Segment segm2 = getSegment(obj2, j);
+    for (size_t sideInd1 = 0; sideInd1 < obj1->numberOfSides; ++sideInd1) {
+        Segment segm1 = getSegment(obj1, sideInd1);
+        for (size_t sideInd2 = 0; sideInd2 < obj2->numberOfSides; ++sideInd2) {
+            Segment segm2 = getSegment(obj2, sideInd2);
             if (doesSegmentsIntersect(&segm1, &segm2))
                 return true;
         }
@@ -107,6 +107,8 @@ void displayObstacle(const Obstacle* obj, sf::RenderWindow* window, int screenHe
         int y = screenHeight - (int)obj->sides[sideIndex].y - 1;
         sf::Vertex vert(sf::Vector2f(x, y));
         vert.color = sf::Color::White;
+        if (sideIndex == 6)
+            vert.color = sf::Color::Cyan;
         arr.append(vert);
     }
 

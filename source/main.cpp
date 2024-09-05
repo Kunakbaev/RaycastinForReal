@@ -9,7 +9,7 @@ int main() {
     // Point startingPosition = constructPoint(WIDTH / 2, HEIGHT / 2);
     Point startingPosition = constructPoint(697.428, 523.2);
     int FOVinDegrees = 60;
-    Player player = constructPlayer(&startingPosition, 2.6579, FOVinDegrees * (PIE / 180), 0.04, 0.0004, 10);
+    Player player = constructPlayer(&startingPosition, 2.6579, FOVinDegrees * (PIE / 180), 0.04, 0.0004, 15);
 
     Point circleCenter = constructPoint(600, 650);
     Obstacle obstacles[] = {
@@ -19,8 +19,10 @@ int main() {
     };
     Scene scene = constructScene(WIDTH, HEIGHT, &player, 3, obstacles);
 
-    sf::RenderWindow  sceneWindow(sf::VideoMode(WIDTH, HEIGHT), "Scene");
-    sf::RenderWindow screenWindow(sf::VideoMode(WIDTH, HEIGHT), "Screen");
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+    sf::RenderWindow  sceneWindow(sf::VideoMode(WIDTH, HEIGHT), "Scene",  sf::Style::Default, settings);
+    sf::RenderWindow screenWindow(sf::VideoMode(WIDTH, HEIGHT), "Screen", sf::Style::Default, settings);
 
     screenWindow.setMouseCursorVisible(false);
     while (sceneWindow.isOpen()) {
@@ -67,13 +69,13 @@ int main() {
         }
         // FIXME: add switch
 
+        sceneWindow.clear();
+        screenWindow.clear();
+
         // new player position is not valid, so we don't move
         if (!isPlayerPositionGood(&scene)) {
             scene.player.position = previousPlayerPosition;
         }
-
-        sceneWindow.clear();
-        screenWindow.clear();
 
         displayScreen(&scene, &screenWindow);
         displayScene(&scene, &sceneWindow);
@@ -81,22 +83,7 @@ int main() {
         sceneWindow.display();
         screenWindow.display();
     }
-
-    while (screenWindow.isOpen()) {
-        sf::Event event;
-        while (screenWindow.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                screenWindow.close();
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-            screenWindow.close();
-        }
-        screenWindow.clear();
-
-        displayScreen(&scene, &screenWindow);
-
-        screenWindow.display();
-    }
+    destructScene(&scene);
 
     return 0;
 }

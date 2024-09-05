@@ -18,7 +18,6 @@ const int MAX_BRIGHTNESS_VALUE                 = 255; // UINT8_MAX
 // ----------------------------   CONSTRUCTING SCENE and checking if all objects are valid    --------------
 
 // obstacles should not intersect
-// FIXME:                const
 static bool validateObstacles(size_t numberOfObstacles, const Obstacle* obstacles) {
     assert(obstacles != NULL);
 
@@ -33,7 +32,6 @@ Scene constructScene(int height, int width, const Player* player, size_t numberO
     assert(height > 0);
     assert(width > 0);
     assert(player != NULL);
-    //assert(numberOfObstacles >= 0);
     assert(obstacles != NULL);
 
     // FIXME: PUT TO DEBUG
@@ -44,7 +42,6 @@ Scene constructScene(int height, int width, const Player* player, size_t numberO
 
     Scene scene = {height, width, *player, numberOfObstacles, obstacles};
 
-    // FIXME: const
     const Point sides[] = {
         constructPoint(0,     0),
         constructPoint(width, 0),
@@ -55,12 +52,11 @@ Scene constructScene(int height, int width, const Player* player, size_t numberO
 
     scene.numberOfObstacles = numberOfObstacles + 1;
     scene.obstacles = (Obstacle*)calloc(numberOfObstacles + 1, sizeof(Obstacle));
-    for (size_t i = 0; i <= numberOfObstacles; ++i) {
-        if (i != numberOfObstacles) {
-            scene.obstacles[i] = obstacles[i];
-        } else {
-            scene.obstacles[i] = bounds;
-        }
+    for (size_t obstacleInd = 0; obstacleInd <= numberOfObstacles; ++obstacleInd) {
+        if (obstacleInd != numberOfObstacles)
+            scene.obstacles[obstacleInd] = obstacles[obstacleInd];
+        else
+            scene.obstacles[obstacleInd] = bounds;
     }
 
     if (!isPlayerPositionGood(&scene)) {
@@ -88,6 +84,20 @@ bool isPlayerPositionGood(const Scene* scene) {
                 return false;
     }
 
+    long double minimalDistToWall = scene->player.bodyRadius * 1;
+    for (size_t obstacleIndex = 0; obstacleIndex < arrLen; ++obstacleIndex) {
+        Obstacle obj = scene->obstacles[obstacleIndex];
+        for (size_t sideIndex = 0; sideIndex < obj.numberOfSides; ++sideIndex) {
+            Segment segm = getSegment(&obj, sideIndex);
+            long double dist = getDistanceFromPointToSegm(&scene->player.position, &segm);
+            printf("%d %d\n", obstacleIndex, sideIndex);
+            printf("segm : %Lg, %Lg     %Lg, %Lg    dist : %Lg\n", segm.p1.x, segm.p1.y, segm.p2.x, segm.p2.y, dist);
+            if (sign(dist - minimalDistToWall) < 0)
+                return false;
+        }
+    }
+    //exit(0);
+
     return true;
 }
 
@@ -109,80 +119,34 @@ static void displayPlayer(const Scene* scene, sf::RenderWindow* window, int scre
     playerCircle.setFillColor(sf::Color::White);
     window->draw(playerCircle);
 
-//     int sightCircleSegmentRadius = 200;
-//     size_t STEPS = 10;
-//     assert(STEPS >= 2);
-//
-//     Vector direction = constructPoint(sightCircleSegmentRadius, 0);
-//     direction = rotateVectorByAngle(&direction,
-//                                     scene->player.currentDirection + scene->player.FOV / 2);
-//     // printf("direction : %Lg %Lg\n", direction.x, direction.y);
-//
-//     long double angleDelta = scene->player.FOV / (STEPS - 1);
-
-    int previousEnd = 0;
-    for (size_t i = 1; i < scene->pairsArraySize; i += 2) {
-        Pair p1 = scene->pairsArray[i - 1];
-        Pair p2 = scene->pairsArray[i];
+    for (size_t rayInd = 1; rayInd < scene->pairsArraySize; rayInd += 2) {
+        Pair p1 = scene->pairsArray[rayInd - 1];
+        Pair p2 = scene->pairsArray[rayInd];
 
         Vector direction = constructPoint(1, 0);
-        direction = rotateVectorByAngle(&direction,
-                                        p1.first);
-        vectorMultByConst(&direction, p1.second);
-        Point one = addVector(&scene->player.position, &direction);
+        direction = rotateVectorByAngle(&direction, p1.first);
+        Point one = vectorMultByConst(&direction, p1.second);
+        one = addVector(&scene->player.position, &one);
 
         direction = constructPoint(1, 0);
-        direction = rotateVectorByAngle(&direction,
-                                        p2.first);
-        vectorMultByConst(&direction, p2.second);
-        Point two = addVector(&scene->player.position, &direction);
-        printf("---------------\n");
-        printf("one : %Lg, %Lg\n", one.x, one.y);
-        printf("two : %Lg, %Lg\n", two.x, two.y);
-        printf("beb : %Lg, %Lg\n", scene->player.position.x, scene->player.position.y);
+        direction = rotateVectorByAngle(&direction, p2.first);
+        Point two = vectorMultByConst(&direction, p2.second);
+        two = addVector(&scene->player.position, &two);
 
-        sf::VertexArray arr(sf::TriangleFan);
-        sf::Vertex vert(sf::Vector2f(one.x, one.y));
-        vert.color = sf::Color::Magenta;
-        arr.append(vert);
-
-        vert.position = sf::Vector2f(two.x, two.y);
-        arr.append(vert);
-
-        vert.position = sf::Vector2f(scene->player.position.x, scene->player.position.y);
-        arr.append(vert);
-
-        printf("arr : \n");
-        for (size_t pointInd = 0; pointInd < arr.getVertexCount(); ++pointInd) {
-            arr[pointInd].position.y = screenHeight - arr[pointInd].position.y - 1;
-            printf("    p : %Lf, %Lf\n", arr[pointInd].position.x, arr[pointInd].position.y);
-        }
-
-        window->draw(arr);
+        sf::ConvexShape poly;
+        poly.setPointCount(3);
+        poly.setFillColor(sf::Color::Magenta);
+        poly.setPoint(0, sf::Vector2f(scene->player.position.x, screenHeight - scene->player.position.y));
+        poly.setPoint(1, sf::Vector2f(one.x, screenHeight - one.y));
+        poly.setPoint(2, sf::Vector2f(two.x, screenHeight - two.y));
+        window->draw(poly);
     }
-
-//     sf::Vertex vert(sf::Vector2f(player->position.x, player->position.y));
-//     vert.color = sf::Color::Magenta;
-//     arr.append(vert);
-//     for (size_t _ = 0; _ < STEPS; ++_) {
-//         Point point = addVector(&player->position, &direction);
-//         direction = rotateVectorByAngle(&direction, -angleDelta);
-//
-//         sf::Vertex vert(sf::Vector2f(point.x, point.y));
-//         vert.color = sf::Color::Magenta;
-//         arr.append(vert);
-//     }
-//     arr.append(vert);
-//
-    // for (size_t pointInd = 0; pointInd < arr.getVertexCount(); ++pointInd)
-    //     arr[pointInd].position.y = screenHeight - arr[pointInd].position.y - 1;
-//     window->draw(arr);
 }
 
 static void displayObstacles(size_t numberOfObstacles, const Obstacle* obstacles, sf::RenderWindow* window, int screenHeight) {
     // last obstacle is bounding rect, so we don't want to display it
-    for (size_t i = 0; i < numberOfObstacles - 1; ++i)
-        displayObstacle(&obstacles[i], window, screenHeight);
+    for (size_t obstacleInd = 0; obstacleInd < numberOfObstacles - 1; ++obstacleInd)
+        displayObstacle(&obstacles[obstacleInd], window, screenHeight);
 }
 
 void displayScene(Scene* scene, sf::RenderWindow* window) {
@@ -202,7 +166,7 @@ static int compare(const void* one, const void* two) {
     assert(one != NULL);
     assert(two != NULL);
 
-    const struct Pair* p1 = (const Pair*)one; // FIXME: warning
+    const struct Pair* p1 = (const Pair*)one;
     const struct Pair* p2 = (const Pair*)two;
 
     int si = sign(p1->first - p2->first);
@@ -217,10 +181,8 @@ static long double findMinDistForDirection(const Vector* direction, const Scene*
 
     long double bestDist = INF;
     Point origin = scene->player.position;
-    //    obstInd
     for (size_t obstInd = 0; obstInd < scene->numberOfObstacles; ++obstInd) {
         Obstacle obj = scene->obstacles[obstInd];
-        //         sideInd
         for (size_t sideInd = 0; sideInd < obj.numberOfSides; ++sideInd) {
             Segment segm = getSegment(&obj, sideInd);
             long double dist = distanceToSegmByDirection(&origin, direction, &segm);
@@ -289,7 +251,7 @@ static void findDistancesToWalls(Scene* scene) {
 }
 
 static int getColumnColorByDistance(long double dist) {
-    //assert(sign(dist) > 0);
+    assert(sign(dist) >= 0);
 
     long double koef = sign(dist) ? 1 / dist : 1;
     koef *= MAGIC_COLUMN_BRIGHTNESS_SCALE_FACTOR;
@@ -301,14 +263,12 @@ static int getColumnColorByDistance(long double dist) {
 
 static int getColumnHeightByDistance(const Scene* scene, long double dist) {
     assert(scene      != NULL);
-    //assert(sign(dist) > 0);
+    assert(sign(dist) >= 0);
 
     long double koef = sign(dist) ? 1 / dist : 1;
     koef *= MAGIC_COLUMN_HEIGHT_SCALE_FACTOR;
-
     int height = (int)(scene->height * koef);
 
-    // FIXME:
     if (height < 1) height = 1;
     return height;
 }
@@ -349,16 +309,11 @@ void displayScreen(Scene* scene, sf::RenderWindow* screen) {
     assert(scene  != NULL);
     assert(screen != NULL);
 
-    findDistancesToWalls(scene);
-    //printf("arrLen : %d\n", arrLen);
-    // printf("cur dir: %Lg\n", scene->player.currentDirection);
-    //return;
-
-    //printf("--------------------\n");
     int previousEnd = 0;
-    for (size_t i = 1; i < scene->pairsArraySize; i += 2) {
-        Pair p1 = scene->pairsArray[i - 1];
-        Pair p2 = scene->pairsArray[i];
+    findDistancesToWalls(scene);
+    for (size_t rayInd = 1; rayInd < scene->pairsArraySize; rayInd += 2) {
+        Pair p1 = scene->pairsArray[rayInd - 1];
+        Pair p2 = scene->pairsArray[rayInd];
 
         long double koef1 = (p1.first - p2.first) / scene->player.FOV;
         int width         = (int)roundl(scene->width * koef1);
@@ -367,10 +322,9 @@ void displayScreen(Scene* scene, sf::RenderWindow* screen) {
         int endHeight     = getColumnHeightByDistance(scene, p2.second);
         int colorStart    = getColumnColorByDistance(p1.second);
         int colorEnd      = getColumnColorByDistance(p2.second);
-        //printf("%Lg %Lg\n", p1.first, p2.first);
 
         drawTrapezoid(previousEnd, end, startHeight, endHeight, scene->height,
-            screen, colorStart, colorEnd);
+                      screen, colorStart, colorEnd);
         previousEnd = end;
     }
 }
@@ -378,9 +332,8 @@ void displayScreen(Scene* scene, sf::RenderWindow* screen) {
 void destructScene(Scene* scene) {
     assert(scene != NULL);
 
-    // for (size_t obstacleInd = 0; obstacleInd < scene->numberOfObstacles; ++obstacleInd) {
-    //     destructObstacle(scene->obstacles[obstacleInd]);
-    // }
+    for (size_t obstacleInd = 0; obstacleInd < scene->numberOfObstacles; ++obstacleInd)
+        destructObstacle(&scene->obstacles[obstacleInd]);
     FREE(scene->obstacles);
     scene->numberOfObstacles = 0;
 
