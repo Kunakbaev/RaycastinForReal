@@ -101,12 +101,13 @@ void displayObstacle(const Obstacle* obj, Environment* env) {
     assert(obj != NULL);
     assert(env != NULL);
 
-    Point points[obj->numberOfSides] = {};
+    Point* points = (Point*)calloc(obj->numberOfSides, sizeof(Point));
     for (size_t sideIndex = 0; sideIndex < obj->numberOfSides; ++sideIndex) {
         points[sideIndex] = constructPoint(obj->sides[sideIndex].x, obj->sides[sideIndex].y);
     }
 
     drawConvexShape(env, env->sceneWindow, obj->numberOfSides, points, sf::Color::White);
+    FREE(points);
 }
 
 void destructObstacle(Obstacle* obstacle) {

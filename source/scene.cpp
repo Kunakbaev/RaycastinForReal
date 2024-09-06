@@ -90,8 +90,8 @@ bool isPlayerPositionGood(const Scene* scene) {
         for (size_t sideIndex = 0; sideIndex < obj.numberOfSides; ++sideIndex) {
             Segment segm = getSegment(&obj, sideIndex);
             long double dist = getDistanceFromPointToSegm(&scene->player.position, &segm);
-            printf("%d %d\n", obstacleIndex, sideIndex);
-            printf("segm : %Lg, %Lg     %Lg, %Lg    dist : %Lg\n", segm.p1.x, segm.p1.y, segm.p2.x, segm.p2.y, dist);
+            //printf("%d %d\n", obstacleIndex, sideIndex);
+            //printf("segm : %Lg, %Lg     %Lg, %Lg    dist : %Lg\n", segm.p1.x, segm.p1.y, segm.p2.x, segm.p2.y, dist);
             if (sign(dist - minimalDistToWall) < 0)
                 return false;
         }
@@ -279,7 +279,7 @@ drawTrapezoid(int start,
     assert(screenHeight > 0);
     assert(env          != NULL);
 
-    Point points[4] = {};
+    sf::VertexArray vertexArray(sf::TriangleFan);
     int mid = screenHeight / 2;
     for (int i = 0; i < 4; ++i) {
         bool isLeft = i == 0 || i == 3;
@@ -288,12 +288,12 @@ drawTrapezoid(int start,
         sf::Color color(colorValue, colorValue, colorValue);
         if (i <= 1) height *= -1;
 
-        Point point = constructPoint(isLeft ? start : end, mid + height));
+        sf::Vertex vert(sf::Vector2f(isLeft ? start : end, mid + height));
         vert.color = color;
-        points[i] = point;
+        vertexArray.append(vert);
     }
 
-    drawConvexShape(env, env->sceneWindow, 4, points, sf::Color::White);
+    drawVertexArray(env, env->screenWindow, vertexArray);
 }
 
 void displayScreen(Scene* scene, Environment* env) {

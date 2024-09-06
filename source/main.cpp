@@ -10,7 +10,7 @@ int main() {
     // Point startingPosition = constructPoint(WIDTH / 2, HEIGHT / 2);
     Point startingPosition = constructPoint(697.428, 523.2);
     int FOVinDegrees = 60;
-    Player player = constructPlayer(&startingPosition, 2.6579, FOVinDegrees * (PIE / 180), 0.04, 0.0004, 15);
+    Player player = constructPlayer(&startingPosition, 2.6579, FOVinDegrees * (PIE / 180), 0.04, 0.0004, 8);
 
     Point circleCenter = constructPoint(600, 650);
     Obstacle obstacles[] = {
@@ -20,37 +20,59 @@ int main() {
     };
     Scene scene = constructScene(WIDTH, HEIGHT, &player, 3, obstacles);
 
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+    sf::VideoMode mode(WIDTH, HEIGHT);
+    sf::RenderWindow sceneWindow(mode, "scene",  sf::Style::Default, settings);
+    sf::RenderWindow screenWindow(mode, "screen", sf::Style::Default, settings);
+    screenWindow.setMouseCursorVisible(false);
+
     Environment env = {};
-    constructEnvironment(WIDTH, HEIGHT, "scene", "screen", &env);
+    constructEnvironment(WIDTH, HEIGHT, &sceneWindow, &screenWindow, &env);
+
     while (isEnvOpen(&env)) {
         KeyboardActions action = windowEventsLoops(&env);
+        //if (action) printf("action : %d\n", action);
 
         Point previousPlayerPosition = scene.player.position;
-        switch (action) {
-            case QUIT_COMMAND:
-                closeWindows(&env);
-                break;
-            case MOVE_PLAYER_FORWARD:
-                movePlayerForward(&scene.player);
-                break;
-            case MOVE_PLAYER_BACKWARD:
-                movePlayerBackward(&scene.player);
-                break;
-            case TURN_PLAYER_LEFT:
-                turnPlayerByAngle(&scene.player, TURN_LEFT);
-                break;
-            case TURN_PLAYER_RIGHT:
-                turnPlayerByAngle(&scene.player, TURN_RIGHT);
-                break;
-            case NO_ACTION:
-            default:
-                break;
-        }
+        if (isQuitPressed()) closeWindows(&env);
+        if (isForwardMove())
+            movePlayerForward(&scene.player);
+        if (isBackwardMove())
+            movePlayerBackward(&scene.player);
+        if (isTurnLeft())
+            turnPlayerByAngle(&scene.player, TURN_LEFT);
+        if (isTurnRight())
+            turnPlayerByAngle(&scene.player, TURN_RIGHT);
+
+
+        // switch (action) {
+        //     case QUIT_COMMAND:
+        //         closeWindows(&env);
+        //         break;
+        //     case MOVE_PLAYER_FORWARD:
+        //         //printf("forward\n");
+        //         movePlayerForward(&scene.player);
+        //         break;
+        //     case MOVE_PLAYER_BACKWARD:
+        //         movePlayerBackward(&scene.player);
+        //         break;
+        //     case TURN_PLAYER_LEFT:
+        //         turnPlayerByAngle(&scene.player, TURN_LEFT);
+        //         break;
+        //     case TURN_PLAYER_RIGHT:
+        //         turnPlayerByAngle(&scene.player, TURN_RIGHT);
+        //         break;
+        //     case NO_ACTION:
+        //     default:
+        //         break;
+        // }
 
         // new player position is not valid, so we don't move
         if (!isPlayerPositionGood(&scene))
             scene.player.position = previousPlayerPosition;
 
+        //printf("pos : %Lg\n", scene.player.position.x);
         clearWindows(&env);
         displayScreen(&scene, &env);
         displayScene(&scene, &env);
