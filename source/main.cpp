@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <SFML/Graphics.hpp>
 
+#include "../include/environmentLib.hpp"
 #include "../include/scene.hpp"
 
 const int WIDTH = 800, HEIGHT = 800;
@@ -19,69 +20,41 @@ int main() {
     };
     Scene scene = constructScene(WIDTH, HEIGHT, &player, 3, obstacles);
 
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
-    sf::RenderWindow  sceneWindow(sf::VideoMode(WIDTH, HEIGHT), "Scene",  sf::Style::Default, settings);
-    sf::RenderWindow screenWindow(sf::VideoMode(WIDTH, HEIGHT), "Screen", sf::Style::Default, settings);
-
-    screenWindow.setMouseCursorVisible(false);
-    while (sceneWindow.isOpen()) {
-        sf::Event event;
-        // FIXME: делаем новую функцию
-        while (sceneWindow.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                sceneWindow.close();
-        }
-        while (screenWindow.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                screenWindow.close();
-        }
-
-        //                       FIXME:        QUIT_KEY
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-            sceneWindow.close();
-            screenWindow.close();
-        }
+    Environment env = {};
+    constructEnvironment(WIDTH, HEIGHT, "scene", "screen", &env);
+    while (isEnvOpen(&env)) {
+        KeyboardActions action = windowEventsLoops(&env);
 
         Point previousPlayerPosition = scene.player.position;
-        //bool isMovePlayer = false;
-        // isForwardKeyPressed
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            //movePlayer(&scene.player, DIRECTION_UP);
-            //isMovePlayer = true;
-            movePlayerForward(&scene.player);
+        switch (action) {
+            case QUIT_COMMAND:
+                closeWindows(&env);
+                break;
+            case MOVE_PLAYER_FORWARD:
+                movePlayerForward(&scene.player);
+                break;
+            case MOVE_PLAYER_BACKWARD:
+                movePlayerBackward(&scene.player);
+                break;
+            case TURN_PLAYER_LEFT:
+                turnPlayerByAngle(&scene.player, TURN_LEFT);
+                break;
+            case TURN_PLAYER_RIGHT:
+                turnPlayerByAngle(&scene.player, TURN_RIGHT);
+                break;
+            case NO_ACTION:
+            default:
+                break;
         }
-        // if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-        //     movePlayer(&scene.player, DIRECTION_RIGHT);
-        // }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            movePlayerBackward(&scene.player);
-        }
-        // if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-        //     movePlayer(&scene.player, DIRECTION_LEFT);
-        // }
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            turnPlayerByAngle(&scene.player, TURN_RIGHT);
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            turnPlayerByAngle(&scene.player, TURN_LEFT);
-        }
-        // FIXME: add switch
-
-        sceneWindow.clear();
-        screenWindow.clear();
 
         // new player position is not valid, so we don't move
-        if (!isPlayerPositionGood(&scene)) {
+        if (!isPlayerPositionGood(&scene))
             scene.player.position = previousPlayerPosition;
-        }
 
-        displayScreen(&scene, &screenWindow);
-        displayScene(&scene, &sceneWindow);
-
-        sceneWindow.display();
-        screenWindow.display();
+        clearWindows(&env);
+        displayScreen(&scene, &env);
+        displayScene(&scene, &env);
+        drawWindows(&env);
     }
     destructScene(&scene);
 

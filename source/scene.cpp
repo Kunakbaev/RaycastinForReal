@@ -106,19 +106,13 @@ bool isPlayerPositionGood(const Scene* scene) {
 
 // ---------------------------------    DISPLAYING STUFF    ---------------------------------------------
 
-static void displayPlayer(const Scene* scene, sf::RenderWindow* window, int screenHeight) {
-    assert(scene  != NULL);
-    assert(window != NULL);
+static void displayPlayer(const Scene* scene, Environment* env, int screenHeight) {
+    assert(scene             != NULL);
+    assert(env               != NULL);
+    assert(env->sceneWindow  != NULL);
+    assert(env->screenWindow != NULL);
 
-    float playerCircleRad = (float)scene->player.bodyRadius;
-    sf::CircleShape playerCircle(playerCircleRad);
-    playerCircle.setPosition(
-        (float)scene->player.position.x - playerCircleRad,
-        (float)(screenHeight - ((float)scene->player.position.y) - 1 - playerCircleRad)
-    );
-    playerCircle.setFillColor(sf::Color::White);
-    window->draw(playerCircle);
-
+    drawCircle(env, env->sceneWindow, &scene->player.position, (float)scene->player.bodyRadius, sf::Color::White);
     for (size_t rayInd = 1; rayInd < scene->pairsArraySize; rayInd += 2) {
         Pair p1 = scene->pairsArray[rayInd - 1];
         Pair p2 = scene->pairsArray[rayInd];
@@ -133,28 +127,26 @@ static void displayPlayer(const Scene* scene, sf::RenderWindow* window, int scre
         Point two = vectorMultByConst(&direction, p2.second);
         two = addVector(&scene->player.position, &two);
 
-        sf::ConvexShape poly;
-        poly.setPointCount(3);
-        poly.setFillColor(sf::Color::Magenta);
-        poly.setPoint(0, sf::Vector2f(scene->player.position.x, screenHeight - scene->player.position.y));
-        poly.setPoint(1, sf::Vector2f(one.x, screenHeight - one.y));
-        poly.setPoint(2, sf::Vector2f(two.x, screenHeight - two.y));
-        window->draw(poly);
+        // FIXME: cringe?
+        const Point points[] = {
+            scene->player.position, one, two
+        };
+        drawConvexShape(env, env->sceneWindow, 3, points, sf::Color::Magenta);
     }
 }
 
-static void displayObstacles(size_t numberOfObstacles, const Obstacle* obstacles, sf::RenderWindow* window, int screenHeight) {
+static void displayObstacles(size_t numberOfObstacles, const Obstacle* obstacles, Environment* env) {
     // last obstacle is bounding rect, so we don't want to display it
     for (size_t obstacleInd = 0; obstacleInd < numberOfObstacles - 1; ++obstacleInd)
-        displayObstacle(&obstacles[obstacleInd], window, screenHeight);
+        displayObstacle(&obstacles[obstacleInd], env);
 }
 
-void displayScene(Scene* scene, sf::RenderWindow* window) {
-    assert(scene  != NULL);
-    assert(window != NULL);
+void displayScene(Scene* scene, Environment* env) {
+    assert(scene != NULL);
+    assert(env   != NULL);
 
-    displayPlayer(scene, window, scene->height);
-    displayObstacles(scene->numberOfObstacles, scene->obstacles, window, scene->height);
+    displayPlayer(scene, env, scene->height);
+    displayObstacles(scene->numberOfObstacles, scene->obstacles, env);
 }
 
 
@@ -281,14 +273,14 @@ drawTrapezoid(int start,
               int startHeight,
               int endHeight,
               int screenHeight,
-              sf::RenderWindow* screen,
+              Environment* env,
               int colorStart,
               int colorEnd) {
     assert(screenHeight > 0);
-    assert(screen       != NULL);
+    assert(env          != NULL);
 
+    Point points[4] = {};
     int mid = screenHeight / 2;
-    sf::VertexArray arr(sf::TrianglesFan);
     for (int i = 0; i < 4; ++i) {
         bool isLeft = i == 0 || i == 3;
         int height = (isLeft ? startHeight : endHeight) / 2;
@@ -296,18 +288,17 @@ drawTrapezoid(int start,
         sf::Color color(colorValue, colorValue, colorValue);
         if (i <= 1) height *= -1;
 
-        sf::Vertex vert(sf::Vector2f(isLeft ? start : end,
-                                     mid + height));
+        Point point = constructPoint(isLeft ? start : end, mid + height));
         vert.color = color;
-        arr.append(vert);
+        points[i] = point;
     }
 
-    screen->draw(arr);
+    drawConvexShape(env, env->sceneWindow, 4, points, sf::Color::White);
 }
 
-void displayScreen(Scene* scene, sf::RenderWindow* screen) {
-    assert(scene  != NULL);
-    assert(screen != NULL);
+void displayScreen(Scene* scene, Environment* env) {
+    assert(scene != NULL);
+    assert(env   != NULL);
 
     int previousEnd = 0;
     findDistancesToWalls(scene);
@@ -324,7 +315,7 @@ void displayScreen(Scene* scene, sf::RenderWindow* screen) {
         int colorEnd      = getColumnColorByDistance(p2.second);
 
         drawTrapezoid(previousEnd, end, startHeight, endHeight, scene->height,
-                      screen, colorStart, colorEnd);
+                      env, colorStart, colorEnd);
         previousEnd = end;
     }
 }

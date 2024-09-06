@@ -1,6 +1,7 @@
 #ifndef OBSTACLE
 #define OBSTACLE
 
+#include "environmentLib.hpp"
 #include "geometryLib.hpp"
 #include "player.hpp"
 
@@ -15,7 +16,7 @@ Obstacle constructCircleObstacle(const Point* center, int radius, size_t numberO
 Segment getSegment(const Obstacle* obj, size_t pointIndex);
 bool doesObstaclesIntersect(const Obstacle* obj1, const Obstacle* obj2);
 bool doesObstacleIntersectWithPlayer(const Obstacle* obj, const Player* player);
-void displayObstacle(const Obstacle* obj, sf::RenderWindow* window, int screenHeight);
+void displayObstacle(const Obstacle* obj, Environment* env);
 void destructObstacle(Obstacle* obstacle);
 
 #endif

@@ -97,22 +97,16 @@ bool doesObstacleIntersectWithPlayer(const Obstacle* obj, const Player* player) 
     return false;
 }
 
-void displayObstacle(const Obstacle* obj, sf::RenderWindow* window, int screenHeight) {
-    assert(obj    != NULL);
-    assert(window != NULL);
+void displayObstacle(const Obstacle* obj, Environment* env) {
+    assert(obj != NULL);
+    assert(env != NULL);
 
-    sf::VertexArray arr(sf::TrianglesFan);
+    Point points[obj->numberOfSides] = {};
     for (size_t sideIndex = 0; sideIndex < obj->numberOfSides; ++sideIndex) {
-        int x = (int)obj->sides[sideIndex].x;
-        int y = screenHeight - (int)obj->sides[sideIndex].y - 1;
-        sf::Vertex vert(sf::Vector2f(x, y));
-        vert.color = sf::Color::White;
-        if (sideIndex == 6)
-            vert.color = sf::Color::Cyan;
-        arr.append(vert);
+        points[sideIndex] = constructPoint(obj->sides[sideIndex].x, obj->sides[sideIndex].y);
     }
 
-    window->draw(arr);
+    drawConvexShape(env, env->sceneWindow, obj->numberOfSides, points, sf::Color::White);
 }
 
 void destructObstacle(Obstacle* obstacle) {

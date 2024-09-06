@@ -5,6 +5,7 @@
 
 #include "player.hpp"
 #include "obstacle.hpp"
+#include "environmentLib.hpp"
 
 struct Pair {
     long double first;
@@ -24,8 +25,8 @@ struct Scene {
 // FIXME: pointer to return value
 Scene constructScene(int height, int width, const Player* player, size_t numberOfObstacles, Obstacle* obstacles);
 bool isPlayerPositionGood(const Scene* scene);
-void displayScene(Scene* scene, sf::RenderWindow* window);
-void displayScreen(Scene* scene, sf::RenderWindow* screen);
+void displayScene(Scene* scene, Environment* env);
+void displayScreen(Scene* scene, Environment* env);
 void destructScene(Scene* scene);
 
 #endif
