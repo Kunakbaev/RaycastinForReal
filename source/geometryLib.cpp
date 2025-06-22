@@ -11,8 +11,6 @@ long double sq(long double x) {
     return x * x;
 }
 
-// TODO: лекция Северов float
-
 int sign(long double x) {
     if (x < -EPS) return -1;
     return x > EPS;
@@ -86,7 +84,6 @@ long double getVectorAngle(const Vector* vector) {
     return atan2(vector->y, vector->x);
 }
 
-//void constructSegment(Point* point, long double x, long double y);
 Segment constructSegment(const Point* p1, const Point* p2) {
     assert(p1 != NULL);
     assert(p2 != NULL);
@@ -137,7 +134,7 @@ bool doesRayIntersectSegm(
     return isInsideAngle(&point, origin, &segment->p1, &segment->p2);
 }
 
-void getLineCoefs(
+static void getLineCoefs(
     const Segment* segment,
     long double*   a,
     long double*   b,

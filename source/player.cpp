@@ -42,16 +42,13 @@ void movePlayer(Player* player, MovementDirections direction) {
     player->position = addVector(&player->position, &deltaVector);
 }
 
-void movePlayerForward(Player* player) {
+void movePlayerInViewDirection(Player* player, bool isForward) {
     Vector deltaVector = constructPoint(player->stepSize, 0);
     deltaVector = rotateVectorByAngle(&deltaVector, player->currentDirection);
-    player->position = addVector(&player->position, &deltaVector);
-}
-
-void movePlayerBackward(Player* player) {
-    Vector deltaVector = constructPoint(player->stepSize, 0);
-    deltaVector = rotateVectorByAngle(&deltaVector, player->currentDirection);
-    deltaVector = vectorMultByConst(&deltaVector, -1);
+    deltaVector = vectorMultByConst(
+        &deltaVector,
+        isForward ? 1 : -1
+    );
     player->position = addVector(&player->position, &deltaVector);
 }
 

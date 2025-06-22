@@ -35,15 +35,11 @@ int main() {
         windowEventsLoops(&env);
 
         Point previousPlayerPosition = scene.player.position;
-        if (isQuitPressed()) closeWindows(&env);
-        if (isForwardMove())
-            movePlayerForward(&scene.player);
-        if (isBackwardMove())
-            movePlayerBackward(&scene.player);
-        if (isTurnLeft())
-            turnPlayerByAngle(&scene.player, TURN_LEFT);
-        if (isTurnRight())
-            turnPlayerByAngle(&scene.player, TURN_RIGHT);
+        if (isQuitPressed())               closeWindows(&env);
+        if (isForwardMove())  movePlayerInViewDirection(&scene.player, true);
+        if (isBackwardMove()) movePlayerInViewDirection(&scene.player, false);
+        if (isTurnLeft())             turnPlayerByAngle(&scene.player, TURN_LEFT);
+        if (isTurnRight())            turnPlayerByAngle(&scene.player, TURN_RIGHT);
 
         // new player position is not valid, so we don't move
         if (!isPlayerPositionGood(&scene))

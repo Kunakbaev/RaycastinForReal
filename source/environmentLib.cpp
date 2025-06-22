@@ -64,12 +64,8 @@ static void windowEventsLoopHelper(sf::RenderWindow* window) {
     }
 }
 
-KeyboardActions windowEventsLoops(const struct Environment* env) {
-    KeyboardActions action = NO_ACTION;
+void windowEventsLoops(const struct Environment* env) {
     windowEventsLoopHelper(env->sceneWindow);
-    if (action != NO_ACTION)
-        return action;
-
     windowEventsLoopHelper(env->screenWindow);
 }
 
@@ -88,7 +84,7 @@ void drawCircle(
     sf::CircleShape playerCircle(radius);
     playerCircle.setPosition(
         (float)point->x - radius,
-        (float)(env->height - (float)point->y - 1 - radius)
+        (float)env->height - (float)point->y - 1 - radius
     );
     playerCircle.setFillColor(color);
     window->draw(playerCircle);
@@ -110,8 +106,8 @@ void drawConvexShape(
     poly.setPointCount(numberOfPoints);
     poly.setFillColor(color);
     for (size_t pointIndex = 0; pointIndex < numberOfPoints; ++pointIndex) {
-        sf::Vector2f vert(points[pointIndex].x,
-                          env->height - points[pointIndex].y - 1);
+        sf::Vector2f vert((float)points[pointIndex].x,
+                          (float)env->height - (float)points[pointIndex].y - 1);
         poly.setPoint(pointIndex, vert);
     }
     window->draw(poly);

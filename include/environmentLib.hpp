@@ -29,7 +29,7 @@ void constructEnvironment(
     Environment*      env
 );
 bool isEnvOpen(const struct Environment* env);
-KeyboardActions windowEventsLoops(const struct Environment* env);
+void windowEventsLoops(const struct Environment* env);
 void drawCircle(
     Environment*      env,
     sf::RenderWindow* window,

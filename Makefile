@@ -25,11 +25,11 @@ $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(BUILD_DIR)
 	@$(CC) -c $< $(CFLAGS) -o $@ $(ASSERT_DEFINE)
 
 run: $(LIB_RUN_NAME)
-	$(BUILD_DIR)/$(LIB_RUN_NAME)
+	@$(BUILD_DIR)/$(LIB_RUN_NAME)
 
 # -------------------------   HELPER TARGETS   ---------------------------
 
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)
 clean:
-	rm -f $(BUILD_DIR)/*.o libRun
+	@rm -f $(BUILD_DIR)/*.o libRun

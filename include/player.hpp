@@ -33,12 +33,12 @@ Player constructPlayer(
     long double  angleRotationStep,
     int          bodyRadius
 );
-void        movePlayerForward (      Player* player);
-void        movePlayerBackward(      Player* player);
-void        movePlayer        (      Player* player, MovementDirections direction);
-void        turnPlayerByAngle (      Player* player, RotationDirections direction);
-long double getMinFOVangle    (const Player* player);
-long double getMaxFOVangle    (const Player* player);
+
+void        movePlayerInViewDirection(      Player* player, bool isForward);
+void        movePlayer               (      Player* player, MovementDirections direction);
+void        turnPlayerByAngle        (      Player* player, RotationDirections direction);
+long double getMinFOVangle           (const Player* player);
+long double getMaxFOVangle           (const Player* player);
 bool        isDirectionInsideFOV(
     const Player* player,
     Vector        direction,

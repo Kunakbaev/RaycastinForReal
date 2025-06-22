@@ -109,7 +109,7 @@ bool isPlayerPositionGood(const Scene* scene) {
 
 // ---------------------------------    DISPLAYING STUFF    ---------------------------------------------
 
-static void displayPlayer(const Scene* scene, Environment* env, int screenHeight) {
+static void displayPlayer(const Scene* scene, Environment* env) {
     assert(scene             != NULL);
     assert(env               != NULL);
     assert(env->sceneWindow  != NULL);
@@ -152,7 +152,7 @@ void displayScene(Scene* scene, Environment* env) {
     assert(scene != NULL);
     assert(env   != NULL);
 
-    displayPlayer(scene, env, scene->height);
+    displayPlayer(scene, env);
     displayObstacles(scene->numberOfObstacles, scene->obstacles, env);
 }
 
@@ -325,7 +325,10 @@ static void drawTrapezoid(
         // than height is with different sign
         if (vertInd <= 1) height *= -1;
 
-        sf::Vertex vert(sf::Vector2f(isLeft ? start : end, mid + height));
+        sf::Vertex vert(sf::Vector2f(
+            (float)(isLeft ? start : end),
+            (float)(mid + height))
+        );
         vert.color = color;
         vertexArray.append(vert);
     }
