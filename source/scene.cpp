@@ -9,29 +9,35 @@
         x = NULL;           \
     } while(0)
 
-const size_t PAIRS_ARRAY_BUFFER_SIZE = 300;
-const long double ROTATION_EPS                 = EPS * 10;
-const int MAGIC_COLUMN_HEIGHT_SCALE_FACTOR     = 80;
-const int MAGIC_COLUMN_BRIGHTNESS_SCALE_FACTOR = 50;
-const int MAX_BRIGHTNESS_VALUE                 = 255; // UINT8_MAX
+const size_t      PAIRS_ARRAY_BUFFER_SIZE              = 300;
+const long double ROTATION_EPS                         = EPS * 10;
+const int         MAGIC_COLUMN_HEIGHT_SCALE_FACTOR     = 80;
+const int         MAGIC_COLUMN_BRIGHTNESS_SCALE_FACTOR = 50;
+const int         MAX_BRIGHTNESS_VALUE                 = UINT8_MAX;
 
 // ----------------------------   CONSTRUCTING SCENE and checking if all objects are valid    --------------
 
-// obstacles should not intersect
+// obstacles should not intersect with each other
 static bool validateObstacles(size_t numberOfObstacles, const Obstacle* obstacles) {
     assert(obstacles != NULL);
 
     for (size_t obstacleIndex = 0; obstacleIndex < numberOfObstacles; ++obstacleIndex)
         for (size_t obstacleIndex2 = obstacleIndex + 1; obstacleIndex2 < numberOfObstacles; ++obstacleIndex2)
-            if (doesObstaclesIntersect(&obstacles[obstacleIndex], &obstacles[obstacleIndex2]))
+            if (areObstaclesIntersecting(&obstacles[obstacleIndex], &obstacles[obstacleIndex2]))
                 return false;
     return true;
 }
 
-Scene constructScene(int height, int width, const Player* player, size_t numberOfObstacles, Obstacle* obstacles) {
-    assert(height > 0);
-    assert(width > 0);
-    assert(player != NULL);
+Scene constructScene(
+    int           height,
+    int           width,
+    const Player* player,
+    size_t        numberOfObstacles,
+    Obstacle*     obstacles
+) {
+    assert(height    > 0);
+    assert(width     > 0);
+    assert(player    != NULL);
     assert(obstacles != NULL);
 
     // FIXME: PUT TO DEBUG
@@ -79,7 +85,7 @@ bool isPlayerPositionGood(const Scene* scene) {
             &scene->player
         );
 
-        if ((obstacleIndex != arrLen - 1 && isInter) ||
+        if ((obstacleIndex != arrLen - 1 &&  isInter) ||
             (obstacleIndex == arrLen - 1 && !isInter))
                 return false;
     }
@@ -88,15 +94,12 @@ bool isPlayerPositionGood(const Scene* scene) {
     for (size_t obstacleIndex = 0; obstacleIndex < arrLen; ++obstacleIndex) {
         Obstacle obj = scene->obstacles[obstacleIndex];
         for (size_t sideIndex = 0; sideIndex < obj.numberOfSides; ++sideIndex) {
-            Segment segm = getSegment(&obj, sideIndex);
+            Segment     segm = getSegment(&obj, sideIndex);
             long double dist = getDistanceFromPointToSegm(&scene->player.position, &segm);
-            //printf("%d %d\n", obstacleIndex, sideIndex);
-            //printf("segm : %Lg, %Lg     %Lg, %Lg    dist : %Lg\n", segm.p1.x, segm.p1.y, segm.p2.x, segm.p2.y, dist);
             if (sign(dist - minimalDistToWall) < 0)
                 return false;
         }
     }
-    //exit(0);
 
     return true;
 }
@@ -135,7 +138,11 @@ static void displayPlayer(const Scene* scene, Environment* env, int screenHeight
     }
 }
 
-static void displayObstacles(size_t numberOfObstacles, const Obstacle* obstacles, Environment* env) {
+static void displayObstacles(
+    size_t          numberOfObstacles,
+    const Obstacle* obstacles,
+    Environment*    env
+) {
     // last obstacle is bounding rect, so we don't want to display it
     for (size_t obstacleInd = 0; obstacleInd < numberOfObstacles - 1; ++obstacleInd)
         displayObstacle(&obstacles[obstacleInd], env);
@@ -214,8 +221,8 @@ static void findDistancesToWalls(Scene* scene) {
 
             Vector direction = subVector(&point, &origin);
             long double angle = NAN;
-            bool isOk = checkIfDirectionInsideFOV(&scene->player, direction, &angle);
-            if (!isOk) continue;
+            if (!isDirectionInsideFOV(&scene->player, direction, &angle))
+                continue;
 
             long double dist = distanceToSegmByDirection(&origin, &direction, &segm);
             long double bestDist = findMinDistForDirection(&direction, scene);
@@ -245,48 +252,78 @@ static void findDistancesToWalls(Scene* scene) {
 static int getColumnColorByDistance(long double dist) {
     assert(sign(dist) >= 0);
 
-    long double koef = sign(dist) ? 1 / dist : 1;
-    koef *= MAGIC_COLUMN_BRIGHTNESS_SCALE_FACTOR;
-    if (sign(koef - 1) > 0)
-        koef = 1.0;
+    long double coef = sign(dist) ? 1 / dist : 1;
+    coef *= MAGIC_COLUMN_BRIGHTNESS_SCALE_FACTOR;
+    if (sign(coef - 1) > 0)
+        coef = 1.0;
 
-    return (int)(MAX_BRIGHTNESS_VALUE * koef);
+    return (int)(MAX_BRIGHTNESS_VALUE * coef);
 }
 
 static int getColumnHeightByDistance(const Scene* scene, long double dist) {
     assert(scene      != NULL);
     assert(sign(dist) >= 0);
 
-    long double koef = sign(dist) ? 1 / dist : 1;
-    koef *= MAGIC_COLUMN_HEIGHT_SCALE_FACTOR;
-    int height = (int)(scene->height * koef);
+    long double coef = sign(dist) ? 1 / dist : 1;
+    coef *= MAGIC_COLUMN_HEIGHT_SCALE_FACTOR;
+    int height = (int)(scene->height * coef);
 
     if (height < 1) height = 1;
     return height;
 }
 
-
-// alternative codestyle
-static void
-drawTrapezoid(int start,
-              int end,
-              int startHeight,
-              int endHeight,
-              int screenHeight,
-              Environment* env,
-              int colorStart,
-              int colorEnd) {
+static void drawTrapezoid(
+    int          start,
+    int          end,
+    int          startHeight,
+    int          endHeight,
+    int          screenHeight,
+    Environment* env,
+    int          colorStart,
+    int          colorEnd
+) {
     assert(screenHeight > 0);
-    assert(env          != NULL);
+    assert(env         != NULL);
+
+    /*
+    trapezoid (it's one of walls) example:
+
+    left  : vertexes with indexes 0 and 3
+    right : vertexes with indexes 1 and 2
+
+                  start     end
+    
+                                              finalHeight
+                            (2)                    |
+                          /  |                     |
+                        /    |                     |
+    startHeight       /      |                     |
+        |           (3)      |                     |
+        |            |       |                     |
+        |            |       |                     |
+        |   -------- | ----  | ------- (mid line)  |
+        |            |       |                     |
+        |            |       |                     |
+        |           (0)      |                     |
+                      \      |                     |
+                        \    |                     |
+                          \  |                     |
+                            \|                     |
+                            (1)                    |
+
+    */
 
     sf::VertexArray vertexArray(sf::TriangleFan);
     int mid = screenHeight / 2;
-    for (int i = 0; i < 4; ++i) {
-        bool isLeft = i == 0 || i == 3;
-        int height = (isLeft ? startHeight : endHeight) / 2;
+    for (int vertInd = 0; vertInd < 4; ++vertInd) {
+        bool isLeft = vertInd == 0 || vertInd == 3;
+        int  height = (isLeft ? startHeight : endHeight) / 2;
         sf::Uint8 colorValue = (sf::Uint8)(isLeft ? colorStart : colorEnd);
         sf::Color color(colorValue, colorValue, colorValue);
-        if (i <= 1) height *= -1;
+
+        // if we are below middle line (indexes 0 and 1)
+        // than height is with different sign
+        if (vertInd <= 1) height *= -1;
 
         sf::Vertex vert(sf::Vector2f(isLeft ? start : end, mid + height));
         vert.color = color;
@@ -306,16 +343,16 @@ void displayScreen(Scene* scene, Environment* env) {
         Pair p1 = scene->pairsArray[rayInd - 1];
         Pair p2 = scene->pairsArray[rayInd];
 
-        long double koef1 = (p1.first - p2.first) / scene->player.FOV;
-        int width         = (int)roundl(scene->width * koef1);
+        long double coef1 = (p1.first - p2.first) / scene->player.FOV;
+        int width         = (int)roundl(scene->width * coef1);
         int end           = previousEnd + width;
         int startHeight   = getColumnHeightByDistance(scene, p1.second);
         int endHeight     = getColumnHeightByDistance(scene, p2.second);
         int colorStart    = getColumnColorByDistance(p1.second);
         int colorEnd      = getColumnColorByDistance(p2.second);
 
-        drawTrapezoid(previousEnd, end, startHeight, endHeight, scene->height,
-                      env, colorStart, colorEnd);
+        drawTrapezoid(previousEnd, end, startHeight, endHeight,
+                      scene->height, env, colorStart, colorEnd);
         previousEnd = end;
     }
 }

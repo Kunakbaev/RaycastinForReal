@@ -18,8 +18,6 @@ int sign(long double x) {
     return x > EPS;
 }
 
-//void constructPoint(Point* point, long double x, long double y);
-
 Point constructPoint(long double x, long double y) {
     Point result = {x, y};
     return result;
@@ -49,12 +47,12 @@ Vector subVector(const Vector* v1, const Vector* v2) {
     return result;
 }
 
-Vector vectorMultByConst(const Vector* vector, long double koef) {
+Vector vectorMultByConst(const Vector* vector, long double coef) {
     assert(vector != NULL);
 
     Vector result = {
-        vector->x * koef,
-        vector->y * koef
+        vector->x * coef,
+        vector->y * coef
     };
 
     return result;
@@ -126,7 +124,11 @@ Vector rotateVectorByAngle(const Vector* vector, long double angle) {
     return result;
 }
 
-bool doesRayIntersectSegm(const Point* origin, const Vector* vector, const Segment* segment) {
+bool doesRayIntersectSegm(
+    const Point*   origin,
+    const Vector*  vector,
+    const Segment* segment
+) {
     assert(origin  != NULL);
     assert(vector  != NULL);
     assert(segment != NULL);
@@ -135,7 +137,12 @@ bool doesRayIntersectSegm(const Point* origin, const Vector* vector, const Segme
     return isInsideAngle(&point, origin, &segment->p1, &segment->p2);
 }
 
-void getLineKoefs(const Segment* segment, long double* a, long double* b, long double* c) {
+void getLineCoefs(
+    const Segment* segment,
+    long double*   a,
+    long double*   b,
+    long double*   c
+) {
     assert(segment != NULL);
     assert(a       != NULL);
     assert(b       != NULL);
@@ -147,7 +154,11 @@ void getLineKoefs(const Segment* segment, long double* a, long double* b, long d
     *c = -segment->p1.x * (*a) - segment->p1.y * (*b);
 }
 
-long double distanceToSegmByDirection(const Point* origin, const Vector* direction, const Segment* segment) {
+long double distanceToSegmByDirection(
+    const Point*   origin,
+    const Vector*  direction,
+    const Segment* segment
+) {
     assert(origin    != NULL);
     assert(direction != NULL);
     assert(segment   != NULL);
@@ -156,7 +167,7 @@ long double distanceToSegmByDirection(const Point* origin, const Vector* directi
         return INF;
 
     long double a = 0, b = 0, c = 0;
-    getLineKoefs(segment, &a, &b, &c);
+    getLineCoefs(segment, &a, &b, &c);
     Vector norm = normalizeVector(direction);
     long double len = (-c - a * origin->x - b * origin->y) / (a * norm.x + b * norm.y);
     if (sign(len) < 0)
@@ -164,7 +175,7 @@ long double distanceToSegmByDirection(const Point* origin, const Vector* directi
     return len;
 }
 
-static bool doesSegmentsIntersectHelper(const Segment* segm1, const Segment* segm2) {
+static bool areSegmentsIntersectingHelper(const Segment* segm1, const Segment* segm2) {
     assert(segm1 != NULL);
     assert(segm2 != NULL);
 
@@ -178,12 +189,12 @@ static bool doesSegmentsIntersectHelper(const Segment* segm1, const Segment* seg
     return sign(cross1) * sign(cross2) <= 0;
 }
 
-bool doesSegmentsIntersect(const Segment* segm1, const Segment* segm2) {
+bool areSegmentsIntersecting(const Segment* segm1, const Segment* segm2) {
     assert(segm1 != NULL);
     assert(segm2 != NULL);
 
-    return doesSegmentsIntersectHelper(segm1, segm2) &&
-           doesSegmentsIntersectHelper(segm2, segm1);
+    return areSegmentsIntersectingHelper(segm1, segm2) &&
+           areSegmentsIntersectingHelper(segm2, segm1);
 }
 
 long double getDistanceFromPointToSegm(const Point* point, const Segment* segm) {

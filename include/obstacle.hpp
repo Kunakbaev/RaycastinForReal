@@ -1,5 +1,5 @@
-#ifndef OBSTACLE
-#define OBSTACLE
+#ifndef INCLUDE_OBSTACLE_HPP
+#define INCLUDE_OBSTACLE_HPP
 
 #include "environmentLib.hpp"
 #include "geometryLib.hpp"
@@ -10,13 +10,13 @@ struct Obstacle {
     Point* sides;
 };
 
-Obstacle constructObstacle(size_t numberOfSides, const Point* sides);
-Obstacle constructRectObstacle(int x1, int y1, int x2, int y2);
-Obstacle constructCircleObstacle(const Point* center, int radius, size_t numberOfPoints);
-Segment getSegment(const Obstacle* obj, size_t pointIndex);
-bool doesObstaclesIntersect(const Obstacle* obj1, const Obstacle* obj2);
-bool doesObstacleIntersectWithPlayer(const Obstacle* obj, const Player* player);
-void displayObstacle(const Obstacle* obj, Environment* env);
-void destructObstacle(Obstacle* obstacle);
+Obstacle constructObstacle              (size_t numberOfSides, const Point* sides);
+Obstacle constructRectObstacle          (int x1, int y1, int x2, int y2);
+Obstacle constructCircleObstacle        (const Point* center, int radius, size_t numberOfPoints);
+Segment  getSegment                     (const Obstacle* obj, size_t pointIndex);
+bool     areObstaclesIntersecting       (const Obstacle* obj1, const Obstacle* obj2);
+bool     doesObstacleIntersectWithPlayer(const Obstacle* obj, const Player* player);
+void     displayObstacle                (const Obstacle* obj, Environment* env);
+void     destructObstacle               (Obstacle* obstacle);
 
 #endif

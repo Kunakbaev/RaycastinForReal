@@ -38,7 +38,7 @@ Obstacle constructRectObstacle(int x1, int y1, int x2, int y2) {
 
 Obstacle constructCircleObstacle(const Point* center, int radius, size_t numberOfPoints) {
     assert(center         != NULL);
-    assert(radius         > 0);
+    assert(radius         >  0);
     assert(numberOfPoints >= 3);
 
     Obstacle obj = {};
@@ -68,7 +68,7 @@ Segment getSegment(const Obstacle* obj, size_t pointIndex) {
     return result;
 }
 
-bool doesObstaclesIntersect(const Obstacle* obj1, const Obstacle* obj2) {
+bool areObstaclesIntersecting(const Obstacle* obj1, const Obstacle* obj2) {
     assert(obj1 != NULL);
     assert(obj2 != NULL);
 
@@ -76,7 +76,7 @@ bool doesObstaclesIntersect(const Obstacle* obj1, const Obstacle* obj2) {
         Segment segm1 = getSegment(obj1, sideInd1);
         for (size_t sideInd2 = 0; sideInd2 < obj2->numberOfSides; ++sideInd2) {
             Segment segm2 = getSegment(obj2, sideInd2);
-            if (doesSegmentsIntersect(&segm1, &segm2))
+            if (areSegmentsIntersecting(&segm1, &segm2))
                 return true;
         }
     }
@@ -103,7 +103,11 @@ void displayObstacle(const Obstacle* obj, Environment* env) {
 
     Point* points = (Point*)calloc(obj->numberOfSides, sizeof(Point));
     for (size_t sideIndex = 0; sideIndex < obj->numberOfSides; ++sideIndex) {
-        points[sideIndex] = constructPoint(obj->sides[sideIndex].x, obj->sides[sideIndex].y);
+        points[sideIndex] =
+            constructPoint(
+                           obj->sides[sideIndex].x, 
+                           obj->sides[sideIndex].y
+                          );
     }
 
     drawConvexShape(env, env->sceneWindow, obj->numberOfSides, points, sf::Color::White);

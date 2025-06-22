@@ -1,11 +1,11 @@
-#ifndef SCENE
-#define SCENE
+#ifndef INCLUDE_SCENE_HPP
+#define INCLUDE_SCENE_HPP
 
 #include <SFML/Graphics.hpp>
 
-#include "player.hpp"
-#include "obstacle.hpp"
 #include "environmentLib.hpp"
+#include "obstacle.hpp"
+#include "player.hpp"
 
 struct Pair {
     long double first;
@@ -13,17 +13,22 @@ struct Pair {
 };
 
 struct Scene {
-    int height;
-    int width;
-    Player player;
-    size_t numberOfObstacles;
+    int       height;
+    int       width;
+    Player    player;
+    size_t    numberOfObstacles;
     Obstacle* obstacles;
-    size_t pairsArraySize;
-    Pair* pairsArray;
+    size_t    pairsArraySize;
+    Pair*     pairsArray;
 };
 
-// FIXME: pointer to return value
-Scene constructScene(int height, int width, const Player* player, size_t numberOfObstacles, Obstacle* obstacles);
+Scene constructScene(
+    int           height,
+    int           width,
+    const Player* player,
+    size_t        numberOfObstacles,
+    Obstacle*     obstacles
+);
 bool isPlayerPositionGood(const Scene* scene);
 void displayScene(Scene* scene, Environment* env);
 void displayScreen(Scene* scene, Environment* env);

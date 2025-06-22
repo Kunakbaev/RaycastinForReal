@@ -1,9 +1,9 @@
-#ifndef PLAYER
-#define PLAYER
+#ifndef INCLUDE_PLAYER_HPP
+#define INCLUDE_PLAYER_HPP
 
 #include "geometryLib.hpp"
 
-enum Directions {
+enum MovementDirections {
     DIRECTION_UP,
     DIRECTION_RIGHT,
     DIRECTION_DOWN,
@@ -16,24 +16,33 @@ enum RotationDirections {
 };
 
 struct Player {
-    Point position;
-    long double stepSize = 1; // how fast player moves across scene
+    Point       position;
+    long double stepSize = 1;                  // how fast player moves across the scene
     long double angleRotationStep = PIE / 120; // how fast player rotates
-    long double currentDirection; // angle in radians
-    long double FOV; // FOV = Field Of View, how much player sees
-    int bodyRadius;
+    long double currentDirection;              // angle in radians
+    long double FOV;                           // FOV = Field Of View, how much player sees (angle in radians)
+    int         bodyRadius;
 };
 
-Vector getVectorByDirection(enum Directions direction);
-Player constructPlayer(const Point* position, long double startingDirection, long double FOV,
-        long double stepSize, long double angleRotationStep, int bodyRadius);
-void movePlayerForward(Player* player);
-void movePlayerBackward(Player* player);
-// void movePlayerByVector(Player* player, Vector* direction);
-void movePlayer(Player* player, Directions direction);
-void turnPlayerByAngle(Player* player, RotationDirections direction);
-long double getMinFOVangle(const Player* player);
-long double getMaxFOVangle(const Player* player);
-bool checkIfDirectionInsideFOV(const Player* player, Vector direction, long double* angle);
+Vector getVectorByDirection(enum MovementDirections direction);
+Player constructPlayer(
+    const Point* position,
+    long double  startingDirection,
+    long double  FOV,
+    long double  stepSize,
+    long double  angleRotationStep,
+    int          bodyRadius
+);
+void        movePlayerForward (      Player* player);
+void        movePlayerBackward(      Player* player);
+void        movePlayer        (      Player* player, MovementDirections direction);
+void        turnPlayerByAngle (      Player* player, RotationDirections direction);
+long double getMinFOVangle    (const Player* player);
+long double getMaxFOVangle    (const Player* player);
+bool        isDirectionInsideFOV(
+    const Player* player,
+    Vector        direction,
+    long double*  angle
+);
 
 #endif

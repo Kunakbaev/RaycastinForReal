@@ -3,26 +3,40 @@
 
 #include "../include/player.hpp"
 
-Vector getVectorByDirection(enum Directions direction) {
+Vector getVectorByDirection(enum MovementDirections direction) {
     // FIXME: where do we have origin of coordinates
     switch (direction) {
-        case DIRECTION_UP   :   return constructPoint(0.0, 1.0);
-        case DIRECTION_RIGHT:   return constructPoint(1.0, 0.0);
+        case DIRECTION_UP   :   return constructPoint(0.0,  1.0);
+        case DIRECTION_RIGHT:   return constructPoint(1.0,  0.0);
         case DIRECTION_DOWN :   return constructPoint(0.0, -1.0);
         case DIRECTION_LEFT :   return constructPoint(-1.0, 0.0);
-        default             :   return constructPoint(0.0, 0.0); // error
+        default             :   return constructPoint(0.0,  0.0); // error, unknown direction
     }
 }
 
-Player constructPlayer(const Point* position, long double startingDirection, long double FOV,
-                       long double stepSize, long double angleRotationStep, int bodyRadius) {
+Player constructPlayer(
+    const Point* position,
+    long double  startingDirection,
+    long double  FOV,
+    long double  stepSize,
+    long double  angleRotationStep,
+    int          bodyRadius
+) {
     assert(position != NULL);
 
-    Player result = { *position, stepSize, angleRotationStep, startingDirection, FOV, bodyRadius };
+    Player result = { 
+        .position          = *position,
+        .stepSize          = stepSize,
+        .angleRotationStep = angleRotationStep,
+        .currentDirection  = startingDirection,
+        .FOV               = FOV,
+        .bodyRadius        = bodyRadius
+    };
+
     return result;
 }
 
-void movePlayer(Player* player, Directions direction) {
+void movePlayer(Player* player, MovementDirections direction) {
     Vector deltaVector = getVectorByDirection(direction);
     deltaVector = vectorMultByConst(&deltaVector, player->stepSize);
     player->position = addVector(&player->position, &deltaVector);
@@ -65,14 +79,15 @@ long double getMinFOVangle(const Player* player) {
     long double maxAngle = player->currentDirection + player->FOV / 2;
     long double minAngle = player->currentDirection - player->FOV / 2;
     int cntLoops = (int)(maxAngle / (2 * PIE));
-    // printf("maxAngle : %Lg\n", maxAngle);
-    // printf("cntLoops : %d\n", cntLoops);
     minAngle -= cntLoops * 2 * PIE;
     return minAngle;
 }
 
-// Vector is small, so copy
-bool checkIfDirectionInsideFOV(const Player* player, Vector direction, long double* validAngle) {
+bool isDirectionInsideFOV(
+    const Player* player,
+    Vector        direction,
+    long double*  validAngle
+) {
     assert(player     != NULL);
     assert(validAngle != NULL);
 

@@ -4,15 +4,23 @@
 
 const sf::Keyboard::Key QUIT_SYMBOL = sf::Keyboard::Q;
 
-void constructEnvironment(size_t width, size_t height, sf::RenderWindow* sceneWindow,
-                          sf::RenderWindow* screenWindow, Environment* env) {
+void constructEnvironment(
+    size_t            width,
+    size_t            height,
+    sf::RenderWindow* sceneWindow,
+    sf::RenderWindow* screenWindow,
+    Environment*      env
+) {
     assert(sceneWindow  != NULL);
     assert(screenWindow != NULL);
 
-    //printf("%d\n", screenWindow.isOpen());
-    Environment result = { width, height, sceneWindow, screenWindow };
+    Environment result = { 
+        .width        = width,
+        .height       = height,
+        .sceneWindow  = sceneWindow,
+        .screenWindow = screenWindow
+    };
     *env = result;
-    //printf("%d\n", result.sceneWindow->isOpen());
 }
 
 bool isEnvOpen(const struct Environment* env) {
@@ -21,88 +29,57 @@ bool isEnvOpen(const struct Environment* env) {
     assert(env->sceneWindow  != NULL);
 
     return env->screenWindow->isOpen() &&
-           env->sceneWindow->isOpen();
+           env-> sceneWindow->isOpen();
 }
 
-// KeyboardActions getKeyboardAction(int keyCode) {
-//     if (keyCode) printf("code : %d\n", keyCode);
-//     switch (keyCode) {
-//         case sf::Keyboard::Up   :
-//         case sf::Keyboard::W    :   return MOVE_PLAYER_FORWARD;
-//         case sf::Keyboard::Down :
-//         case sf::Keyboard::S    :   return MOVE_PLAYER_BACKWARD;
-//         case sf::Keyboard::D    :
-//         case sf::Keyboard::Right:   return TURN_PLAYER_RIGHT;
-//         case sf::Keyboard::A    :
-//         case sf::Keyboard::Left :   return TURN_PLAYER_LEFT;
-//         case sf::Keyboard::Q    :   return QUIT_COMMAND;
-//         default                 :   return NO_ACTION;
-//     }
-// }
-
-// FIXME: cringe???
-// #define BE sf::Keyboard::isKeyPressed(sf::Keyboard
-// #define IS_PRESSED(x) BE ##x)
+#define IS_KEY_PRESSED(key) sf::Keyboard::isKeyPressed(sf::Keyboard::key)
 
 bool isForwardMove() {
-    return sf::Keyboard::isKeyPressed(sf::Keyboard::W) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
-    //return IS_PRESSED(W) || IS_PRESSED(Up);
+    return IS_KEY_PRESSED(W) || IS_KEY_PRESSED(Up);
 }
 
 bool isBackwardMove() {
-return sf::Keyboard::isKeyPressed(sf::Keyboard::S) ||
-        sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
-    //return IS_PRESSED(S) || IS_PRESSED(Down);
+    return IS_KEY_PRESSED(S) || IS_KEY_PRESSED(Down);
 }
 
 bool isTurnRight() {
-    return sf::Keyboard::isKeyPressed(sf::Keyboard::D) ||
-           sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+    return IS_KEY_PRESSED(D) || IS_KEY_PRESSED(Right);
 }
 
 bool isTurnLeft() {
-    return sf::Keyboard::isKeyPressed(sf::Keyboard::A) ||
-           sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
+    return IS_KEY_PRESSED(A) || IS_KEY_PRESSED(Left);
 }
 
 bool isQuitPressed() {
     return sf::Keyboard::isKeyPressed(QUIT_SYMBOL);
 }
 
-static KeyboardActions windowEventsLoopHelper(sf::RenderWindow* window) {
-    //assert(env    != NULL);
+static void windowEventsLoopHelper(sf::RenderWindow* window) {
     assert(window != NULL);
 
     sf::Event event = {};
-    KeyboardActions result = NO_ACTION;
     while (window->pollEvent(event)) {
         if (event.type == sf::Event::Closed)
             window->close();
-//         if (event.type == sf::Event::KeyPressed) {
-//             KeyboardActions action = getKeyboardAction(event.key.code);
-//             if (action == MOVE_PLAYER_BACKWARD)
-//                 env->movementState = MOVE_BACKWARD;
-//
-//         }
     }
-
-    //if (sf::Keyboard::isKeyPressed(sf::Keyboard::W
-
-    //if (result) printf("be : %d\n", result);
-    return result;
 }
 
 KeyboardActions windowEventsLoops(const struct Environment* env) {
     KeyboardActions action = NO_ACTION;
-    action = windowEventsLoopHelper(env->sceneWindow);
+    windowEventsLoopHelper(env->sceneWindow);
     if (action != NO_ACTION)
         return action;
 
-    return windowEventsLoopHelper(env->screenWindow);
+    windowEventsLoopHelper(env->screenWindow);
 }
 
-void drawCircle(Environment* env, sf::RenderWindow* window, const Point* point, float radius, sf::Color color) {
+void drawCircle(
+    Environment*      env, 
+    sf::RenderWindow* window, 
+    const Point*      point,
+    float             radius,
+    sf::Color         color
+) {
     assert(env          != NULL);
     assert(window       != NULL);
     assert(point        != NULL);
@@ -117,11 +94,17 @@ void drawCircle(Environment* env, sf::RenderWindow* window, const Point* point, 
     window->draw(playerCircle);
 }
 
-void drawConvexShape(Environment* env, sf::RenderWindow* window, size_t numberOfPoints, const Point* const points, sf::Color color) {
-    assert(env != NULL);
-    assert(window != NULL);
+void drawConvexShape(
+    Environment*       env,
+    sf::RenderWindow*  window,
+    size_t             numberOfPoints,
+    const Point* const points,
+    sf::Color          color
+) {
+    assert(env            != NULL);
+    assert(window         != NULL);
     assert(numberOfPoints >= 3);
-    assert(points != NULL);
+    assert(points         != NULL);
 
     sf::ConvexShape poly;
     poly.setPointCount(numberOfPoints);
@@ -134,15 +117,14 @@ void drawConvexShape(Environment* env, sf::RenderWindow* window, size_t numberOf
     window->draw(poly);
 }
 
-void drawVertexArray(Environment* env, sf::RenderWindow* window, sf::VertexArray array) {
-    assert(env != NULL);
+void drawVertexArray(
+    Environment*      env,
+    sf::RenderWindow* window,
+    sf::VertexArray   array
+) {
+    assert(env    != NULL);
     assert(window != NULL);
-    // assert(array != NULL);
 
-    // for (size_t pointIndex = 0; pointIndex < array.getVertexCount(); ++pointIndex) {
-    //     int y = array[pointIndex].position.y;
-    //     array[pointIndex].position.y = env->height - y - 1;
-    // }
     window->draw(array);
 }
 
