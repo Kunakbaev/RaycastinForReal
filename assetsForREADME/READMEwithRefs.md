@@ -142,13 +142,6 @@ To draw a scene on the screen, we look at each such pair and draw a trapezoid wi
 
 Also, there's an article on habr [<sup>[15]</sup>](#reference-15)that basically is like this README, but a bit different. This algorithm with casting rays only to vertices is also described there.
 
-Video of my raycasting working:
-
-<video width="600" controls>
-  <source src="assetsForREADME/myRaycastingExample.webm" type="video/webm">
-  Your browser does not support the video tag.
-</video>
-
 ## 6. Comparison of 2 algorithms
 
 ### 6.1 Time complexity

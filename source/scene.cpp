@@ -224,7 +224,7 @@ static void findDistancesToWalls(Scene* scene) {
             if (!isDirectionInsideFOV(&scene->player, direction, &angle))
                 continue;
 
-            long double dist = distanceToSegmByDirection(&origin, &direction, &segm);
+            long double dist     = distanceToSegmByDirection(&origin, &direction, &segm);
             long double bestDist = findMinDistForDirection(&direction, scene);
 
             if (sign(bestDist - dist) < 0)
