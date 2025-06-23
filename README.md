@@ -20,6 +20,7 @@ There are 2 main things: scene (image on the right) and screen (image on the lef
 * player's field of view (FOV) [<sup>[7]</sup>](#reference-7), it's just some angle, segment sector. Humans usually have FOV of around 60 degrees, however we can increase it's value in raycasting just for fun and to see some interesting effects
 
 ![raycasting scene example](assetsForREADME/raycastingExampleFromWikipedia.gif)
+
 *image from wikipedia [<sup>[8]</sup>](#reference-8)*
 
 ## 3. Graphics library
@@ -98,7 +99,6 @@ struct Player {
 };
 ```
 </details>
-<br>
 
 Movement is done by keyboard, with **WASD** keys or arrows, where **W** and **S** are used for moving forward and backwards accordingly and **A** and **D** for camera (player) rotation.
 
@@ -142,24 +142,23 @@ To draw a scene on the screen, we look at each such pair and draw a trapezoid wi
 
 Also, there's an article on habr [<sup>[15]</sup>](#reference-15)that basically is like this README, but a bit different. This algorithm with casting rays only to vertices is also described there.
 
-Video of my raycasting working:
+Video of my raycasting working (click on the video):
 
-<video width="600" controls>
-  <source src="assetsForREADME/myRaycastingExample.webm" type="video/webm">
-  Your browser does not support the video tag.
-</video>
+[![alt text](assetsForREADME/thumbnail.jpg)](https://www.youtube.com/watch?v=Okv16IUrETA)
+
+*[**link**](https://www.youtube.com/watch?v=Okv16IUrETA) to youtube video[<sup>[16]</sup>](#reference-16)*
 
 ## 6. Comparison of 2 algorithms
 
 ### 6.1 Time complexity
 
-Let's compare time complexity [<sup>[16]</sup>](#reference-16)of each algorithm. Also, let's name width of the screen in pixels a $W$ and the number of vertices (sum of count of vertices for all polygons) a $N$.
+Let's compare time complexity [<sup>[17]</sup>](#reference-17)of each algorithm. Also, let's name width of the screen in pixels a $W$ and the number of vertices (sum of count of vertices for all polygons) a $N$.
 
 In the first one we cast ray for each column of pixels in the screen, so that requires $O(W)$. And for each ray we iterate through all the obstacles, that's $O(N)$. In total we need $O(W \cdot N)$.
 
 In the second one, we iterate through all vertices and perform a check for each one, which takes $O(N)$ as we need to find the smallest distance and to do so we once again iterate through. In total that requires $O(N^2)$, also we sort array with $2N$ elements. So in total we have: $O(N^2 + 2\,N\,logN) = O(N^2)$.
 
-However, I'm quite sure, that this can be reduced to just $O(N\,logN)$ if we use some smarter algorithm. I was thinking in direction of **scanline** algorithm, there is an article in Russian on that matter [<sup>[17]</sup>](#reference-17)If we just sort all points from polygons by angle (and distance to the player) and process events as: point spawns and point goes away, while having some structure that can efficiently tell us whether added point is blocked by some other segment, than we can solve our problem. But I thought that was too complex for my purposes and didn't implement this approach.
+However, I'm quite sure, that this can be reduced to just $O(N\,logN)$ if we use some smarter algorithm. I was thinking in direction of **scanline** algorithm, there is an article in Russian on that matter [<sup>[18]</sup>](#reference-18)If we just sort all points from polygons by angle (and distance to the player) and process events as: point spawns and point goes away, while having some structure that can efficiently tell us whether added point is blocked by some other segment, than we can solve our problem. But I thought that was too complex for my purposes and didn't implement this approach.
 
 ### 6.2 Realization details (constant factors)
 
@@ -167,7 +166,7 @@ While second algorithm seems to be working better as usually number of vertices 
 
 * at some point we just want to make our scene bigger, which means more walls (polygons) and more vertices, so $N$ grows, however, even though $W$ is quite big, at some point it will become just a constant, so first algorithm will be linear, working in $O(N)$ with huge constant factor $W$. 
 
-* also we can use parallel computing technique [<sup>[18]</sup>](#reference-18)as each ray is independent from others. This can reduce constant factor by a lot.
+* also we can use parallel computing technique [<sup>[19]</sup>](#reference-19)as each ray is independent from others. This can reduce constant factor by a lot.
 
 ### 6.3 Capabilities
 
@@ -215,8 +214,10 @@ To my mind, simple raycasting algorithm, where each ray is casted separately is 
 <a id="reference-15"></a>
 15. [**^**](https://habr.com/ru/articles/578110/) Habr article about raycasting.
 <a id="reference-16"></a>
-16. [**^**](https://en.wikipedia.org/wiki/Time_complexity) Time complexity.
+15. [**^**](https://www.youtube.com/watch?v=Okv16IUrETA) Youtube video with my raycasting example.
 <a id="reference-17"></a>
-17. [**^**](https://ru.algorithmica.org/cs/decomposition/scanline/.) Scanline algorithm.
+16. [**^**](https://en.wikipedia.org/wiki/Time_complexity) Time complexity.
 <a id="reference-18"></a>
+17. [**^**](https://ru.algorithmica.org/cs/decomposition/scanline/.) Scanline algorithm.
+<a id="reference-19"></a>
 18. [**^**](https://en.wikipedia.org/wiki/Parallel_computing) Parallel computing.
